@@ -19,9 +19,9 @@
   --color-text-secondary: rgba(255,255,255,0.5);
   --color-text-muted: rgba(255,255,255,0.25);
 
-  /* Accent — white-based, no green */
-  --color-accent: #ffffff;
-  --color-accent-hover: rgba(255,255,255,0.85);
+  /* Accent */
+  --color-accent: #6366f1;
+  --color-accent-hover: #4f46e5;
 
   /* Gold — used only for champion/winner highlights */
   --color-gold: #c9a84c;
