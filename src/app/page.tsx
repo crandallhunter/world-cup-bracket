@@ -47,7 +47,7 @@ export default function HomePage() {
           {[
             { value: '48', label: 'Teams' },
             { value: '12', label: 'Groups' },
-            { value: '64', label: 'Matches' },
+            { value: '104', label: 'Matches' },
             { value: '1', label: 'Champion' },
           ].map((s) => (
             <div
