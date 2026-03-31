@@ -22,6 +22,8 @@ export function useNFTBalance() {
 
   const balance = data ? Number(data) : 0;
 
+  console.log('[NFTBalance]', { address, isConnected, contract: NFT_CONTRACT_ADDRESS, data: String(data), balance, error: error?.message });
+
   return {
     balance,
     isLoading: isConnected && isLoading && !error,
