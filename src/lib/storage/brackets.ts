@@ -1,15 +1,26 @@
 import type { BracketSubmission } from '@/types/tournament';
 
 const STORAGE_KEY_PREFIX = 'wcb_submissions_';
+const ANON_ID_KEY = 'wcb_anon_id';
 
-function getKey(address: string): string {
-  return `${STORAGE_KEY_PREFIX}${address.toLowerCase()}`;
+export function getAnonId(): string {
+  if (typeof window === 'undefined') return 'server';
+  let id = localStorage.getItem(ANON_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(ANON_ID_KEY, id);
+  }
+  return id;
 }
 
-export function loadSubmissions(address: string): BracketSubmission[] {
+function getKey(id: string): string {
+  return `${STORAGE_KEY_PREFIX}${id}`;
+}
+
+export function loadSubmissions(id: string): BracketSubmission[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(getKey(address));
+    const raw = localStorage.getItem(getKey(id));
     if (!raw) return [];
     return JSON.parse(raw) as BracketSubmission[];
   } catch {
@@ -17,16 +28,13 @@ export function loadSubmissions(address: string): BracketSubmission[] {
   }
 }
 
-export function saveSubmission(
-  address: string,
-  submission: BracketSubmission
-): void {
+export function saveSubmission(id: string, submission: BracketSubmission): void {
   if (typeof window === 'undefined') return;
-  const existing = loadSubmissions(address);
+  const existing = loadSubmissions(id);
   const updated = [...existing, submission];
-  localStorage.setItem(getKey(address), JSON.stringify(updated));
+  localStorage.setItem(getKey(id), JSON.stringify(updated));
 }
 
-export function countSubmissions(address: string): number {
-  return loadSubmissions(address).length;
+export function countSubmissions(id: string): number {
+  return loadSubmissions(id).length;
 }

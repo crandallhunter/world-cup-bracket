@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useAccount } from 'wagmi';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { loadSubmissions } from '@/lib/storage/brackets';
+import { loadSubmissions, getAnonId } from '@/lib/storage/brackets';
 import { getFlagEmoji } from '@/lib/tournament/teams';
-import { WalletButton } from '@/components/wallet/WalletButton';
 import { Spinner } from '@/components/ui/Spinner';
 import type { BracketSubmission, KnockoutMatch, GroupStanding } from '@/types/tournament';
 
@@ -147,12 +145,8 @@ function ThirdPlaceSection({ teams }: { teams: BracketSubmission['qualifiedThird
   );
 }
 
-const DEV_ADDRESS = process.env.NODE_ENV === 'development' ? '0xdevtest' : null;
-
 export default function BracketDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { address: walletAddress, isConnected } = useAccount();
-  const address = DEV_ADDRESS ?? walletAddress ?? undefined;
   const [bracket, setBracket] = useState<BracketSubmission | null>(null);
   const [bracketIndex, setBracketIndex] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -160,39 +154,22 @@ export default function BracketDetailPage() {
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!address) return;
-    const all = loadSubmissions(address);
+    if (!mounted) return;
+    const anonId = getAnonId();
+    const all = loadSubmissions(anonId);
     const idx = all.findIndex((b) => b.id === id);
     if (idx >= 0) {
       setBracket(all[idx]);
       setBracketIndex(idx);
     }
     setLoading(false);
-  }, [address, id]);
+  }, [mounted, id]);
 
-  if (!mounted) return (
+  if (!mounted || loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <Spinner className="w-8 h-8 text-accent" />
     </div>
   );
-
-  if (!isConnected && !DEV_ADDRESS) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
-        <div className="text-4xl">🔒</div>
-        <h2 className="text-xl font-bold">Connect Your Wallet</h2>
-        <WalletButton />
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Spinner className="w-8 h-8 text-accent" />
-      </div>
-    );
-  }
 
   if (!bracket) {
     return (
@@ -221,13 +198,11 @@ export default function BracketDetailPage() {
     minute: '2-digit',
   });
 
-  // Find the Final match to get finalists for score display
   const finalMatch = bracket.knockoutPicks.find((m) => m.round === 'F');
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
 
-      {/* Back + header */}
       <div className="flex items-center gap-4">
         <Link href="/my-brackets" className="text-white/40 hover:text-white/70 transition-colors text-sm flex items-center gap-1">
           ← My Brackets
@@ -239,7 +214,6 @@ export default function BracketDetailPage() {
         </div>
       </div>
 
-      {/* Champion hero */}
       {champion && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -256,7 +230,6 @@ export default function BracketDetailPage() {
           <div className="relative text-7xl leading-none">{getFlagEmoji(champion.flagCode)}</div>
           <h1 className="relative text-4xl font-black text-white tracking-tight">{champName}</h1>
 
-          {/* Final score prediction */}
           {bracket.finalScore && finalMatch?.homeTeam && finalMatch?.awayTeam && (
             <div className="relative mt-4 pt-4 border-t border-white/8">
               <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3">Predicted Final Score</p>
@@ -282,13 +255,11 @@ export default function BracketDetailPage() {
         </motion.div>
       )}
 
-      {/* Knockout bracket */}
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest">Knockout Bracket</h2>
         <KnockoutSection picks={bracket.knockoutPicks} />
       </section>
 
-      {/* 3rd Place picks */}
       {bracket.qualifiedThirdPlace?.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest">
@@ -298,7 +269,6 @@ export default function BracketDetailPage() {
         </section>
       )}
 
-      {/* Group Standings */}
       {bracket.groupStandings?.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest">Group Standings</h2>

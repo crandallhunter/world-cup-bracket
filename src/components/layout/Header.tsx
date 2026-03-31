@@ -1,13 +1,4 @@
-'use client';
-
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
-import { BracketSlotCounter } from '@/components/wallet/BracketSlotCounter';
-
-const WalletButton = dynamic(
-  () => import('@/components/wallet/WalletButton').then((m) => ({ default: m.WalletButton })),
-  { ssr: false }
-);
 
 export function Header() {
   return (
@@ -28,11 +19,6 @@ export function Header() {
             My Brackets
           </Link>
         </nav>
-
-        <div className="flex items-center gap-4 shrink-0">
-          <BracketSlotCounter />
-          <WalletButton />
-        </div>
       </div>
     </header>
   );

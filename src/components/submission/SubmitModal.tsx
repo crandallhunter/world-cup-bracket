@@ -6,7 +6,6 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { ShareCard } from './ShareCard';
 import { useBracketStore } from '@/store/bracketStore';
-import { useNFTBalance } from '@/lib/web3/hooks/useNFTBalance';
 import { getFlagEmoji } from '@/lib/tournament/teams';
 
 interface SubmitModalProps {
@@ -18,13 +17,11 @@ export function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
   const [phase, setPhase] = useState<'confirm' | 'success'>('confirm');
   const [error, setError] = useState<string | null>(null);
   const { knockoutBracket, submitBracket } = useBracketStore();
-  const { address, balance } = useNFTBalance();
 
   const champion = knockoutBracket.find((m) => m.round === 'F')?.winner;
 
   function handleSubmit() {
-    if (!address) return;
-    const result = submitBracket(address, balance);
+    const result = submitBracket();
     if (result.success) {
       setPhase('success');
     } else {

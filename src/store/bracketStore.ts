@@ -10,7 +10,7 @@ import type {
 } from '@/types/tournament';
 import { GROUP_LABELS, GROUPS } from '@/lib/tournament/teams';
 import { buildFullBracket, propagateWinner } from '@/lib/tournament/r32Seeding';
-import { saveSubmission, loadSubmissions } from '@/lib/storage/brackets';
+import { saveSubmission, loadSubmissions, getAnonId } from '@/lib/storage/brackets';
 import type { ThirdPlaceTeam } from '@/lib/tournament/thirdPlace';
 
 function defaultStandings(): Record<GroupLabel, GroupStanding> {
@@ -27,26 +27,14 @@ function defaultStandings(): Record<GroupLabel, GroupStanding> {
 }
 
 interface BracketStore {
-  // ─── Steps ─────────────────────────────────────────────────────────────────
   currentStep: BracketStep;
-  currentGroupIndex: number; // 0–11 (A–L)
-
-  // ─── Group Stage ────────────────────────────────────────────────────────────
+  currentGroupIndex: number;
   groupStandings: Record<GroupLabel, GroupStanding>;
-
-  // ─── Third Place ────────────────────────────────────────────────────────────
-  selectedThirdPlace: ThirdPlaceTeam[]; // exactly 8 teams
-
-  // ─── Knockout Bracket ───────────────────────────────────────────────────────
+  selectedThirdPlace: ThirdPlaceTeam[];
   knockoutBracket: KnockoutMatch[];
-
-  // ─── Final Score Prediction ─────────────────────────────────────────────────
   finalScore: FinalScore | null;
-
-  // ─── Submissions ────────────────────────────────────────────────────────────
   submittedBrackets: BracketSubmission[];
 
-  // ─── Actions ────────────────────────────────────────────────────────────────
   setGroupRanking: (group: GroupLabel, rankings: [Team, Team, Team, Team]) => void;
   markGroupComplete: (group: GroupLabel) => void;
   setSelectedThirdPlace: (teams: ThirdPlaceTeam[]) => void;
@@ -56,8 +44,8 @@ interface BracketStore {
   goToStep: (step: BracketStep) => void;
   goToNextGroup: () => void;
   goToPrevGroup: () => void;
-  submitBracket: (walletAddress: string, nftBalance: number) => { success: boolean; error?: string };
-  loadSubmissionsForAddress: (walletAddress: string) => void;
+  submitBracket: () => { success: boolean; error?: string };
+  loadSubmissionsForAddress: (id: string) => void;
   resetBracket: () => void;
 }
 
@@ -111,7 +99,6 @@ export const useBracketStore = create<BracketStore>((set, get) => ({
   goToNextGroup: () => {
     const { currentGroupIndex, groupStandings } = get();
     const currentGroup = GROUP_LABELS[currentGroupIndex];
-    // Auto-mark current group complete on next
     set((state) => ({
       groupStandings: {
         ...state.groupStandings,
@@ -119,7 +106,6 @@ export const useBracketStore = create<BracketStore>((set, get) => ({
       },
       currentGroupIndex: Math.min(currentGroupIndex + 1, 11),
     }));
-    // If we just completed the last group, move to third place step
     if (currentGroupIndex === 11) {
       set({ currentStep: 'THIRD_PLACE' });
     }
@@ -132,16 +118,14 @@ export const useBracketStore = create<BracketStore>((set, get) => ({
     }));
   },
 
-  submitBracket: (walletAddress, nftBalance) => {
-    const { submittedBrackets, groupStandings, selectedThirdPlace, knockoutBracket } = get();
-    if (submittedBrackets.length >= nftBalance) {
-      return { success: false, error: 'You have used all your bracket submissions.' };
-    }
+  submitBracket: () => {
+    const { groupStandings, selectedThirdPlace, knockoutBracket } = get();
+    const anonId = getAnonId();
     const finalMatch = knockoutBracket.find((m) => m.round === 'F');
     const { finalScore } = get();
     const submission: BracketSubmission = {
       id: crypto.randomUUID(),
-      walletAddress,
+      walletAddress: anonId,
       submittedAt: Date.now(),
       groupStandings: Object.values(groupStandings),
       qualifiedThirdPlace: selectedThirdPlace,
@@ -149,7 +133,7 @@ export const useBracketStore = create<BracketStore>((set, get) => ({
       champion: finalMatch?.winner,
       finalScore: finalScore ?? undefined,
     };
-    saveSubmission(walletAddress, submission);
+    saveSubmission(anonId, submission);
     set((state) => ({
       submittedBrackets: [...state.submittedBrackets, submission],
       currentStep: 'SUBMITTED',
@@ -157,8 +141,8 @@ export const useBracketStore = create<BracketStore>((set, get) => ({
     return { success: true };
   },
 
-  loadSubmissionsForAddress: (walletAddress) => {
-    const submissions = loadSubmissions(walletAddress);
+  loadSubmissionsForAddress: (id) => {
+    const submissions = loadSubmissions(id);
     set({ submittedBrackets: submissions });
   },
 
