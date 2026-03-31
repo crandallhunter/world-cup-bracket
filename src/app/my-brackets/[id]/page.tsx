@@ -1,0 +1,310 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useAccount } from 'wagmi';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { loadSubmissions } from '@/lib/storage/brackets';
+import { getFlagEmoji } from '@/lib/tournament/teams';
+import { WalletButton } from '@/components/wallet/WalletButton';
+import { Spinner } from '@/components/ui/Spinner';
+import type { BracketSubmission, KnockoutMatch, GroupStanding } from '@/types/tournament';
+
+const ROUND_LABELS: Record<string, string> = {
+  R32: 'Round of 32',
+  R16: 'Round of 16',
+  QF: 'Quarterfinals',
+  SF: 'Semifinals',
+  F: 'Final',
+};
+const ROUND_ORDER = ['R32', 'R16', 'QF', 'SF', 'F'];
+
+function ReadOnlyMatch({ match }: { match: KnockoutMatch }) {
+  const home = match.homeTeam;
+  const away = match.awayTeam;
+
+  function TeamRow({ team, isWinner }: { team: typeof home; isWinner: boolean }) {
+    if (!team) {
+      return (
+        <div className="flex items-center gap-2 px-2.5 py-1.5">
+          <span className="text-sm w-5 text-center text-white/15">—</span>
+          <span className="text-xs text-white/20 italic">TBD</span>
+        </div>
+      );
+    }
+    const name = team.isPlayoffWinner ? team.placeholderLabel : team.name;
+    return (
+      <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded ${isWinner ? 'bg-white/8' : ''}`}>
+        <span className="text-sm w-5 text-center">{getFlagEmoji(team.flagCode)}</span>
+        <span className={`text-xs truncate max-w-[80px] ${isWinner ? 'text-white font-semibold' : 'text-white/45'}`}>
+          {name}
+        </span>
+        {isWinner && <span className="ml-auto text-[9px] text-white/30">✓</span>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="border border-white/8 rounded-lg overflow-hidden bg-surface-2 min-w-[120px]">
+      <TeamRow team={home} isWinner={match.winner?.id === home?.id} />
+      <div className="h-px bg-white/6" />
+      <TeamRow team={away} isWinner={match.winner?.id === away?.id} />
+    </div>
+  );
+}
+
+function KnockoutSection({ picks }: { picks: KnockoutMatch[] }) {
+  return (
+    <div className="overflow-x-auto -mx-4 px-4 pb-2">
+      <div className="flex gap-4 min-w-max">
+        {ROUND_ORDER.map((round) => {
+          const matches = picks.filter((m) => m.round === round).sort((a, b) => a.position - b.position);
+          if (!matches.length) return null;
+          return (
+            <div key={round} className="flex flex-col gap-2">
+              <div className="text-[10px] font-semibold text-white/25 uppercase tracking-widest text-center pb-1.5 border-b border-white/6">
+                {ROUND_LABELS[round]}
+              </div>
+              <div className="flex flex-col justify-around gap-2 flex-1">
+                {matches.map((match) => (
+                  <ReadOnlyMatch key={match.matchId} match={match} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function GroupsSection({ standings }: { standings: GroupStanding[] }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  return (
+    <div className="space-y-2">
+      {standings
+        .slice()
+        .sort((a, b) => a.group.localeCompare(b.group))
+        .map((gs) => {
+          const isOpen = expanded === gs.group;
+          return (
+            <div key={gs.group} className="border border-white/8 rounded-xl overflow-hidden">
+              <button
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/4 transition-colors"
+                onClick={() => setExpanded(isOpen ? null : gs.group)}
+              >
+                <span className="text-xs font-bold text-white/40 w-6">Grp {gs.group}</span>
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  {gs.rankings.slice(0, 2).map((t) => (
+                    <div key={t.id} className="flex items-center gap-1 bg-white/6 rounded px-1.5 py-0.5">
+                      <span className="text-xs">{getFlagEmoji(t.flagCode)}</span>
+                      <span className="text-xs text-white/60 hidden sm:block">{t.name}</span>
+                    </div>
+                  ))}
+                  <span className="text-white/20 text-xs">+2 more</span>
+                </div>
+                <span className="text-white/30 text-sm">{isOpen ? '↑' : '↓'}</span>
+              </button>
+              {isOpen && (
+                <div className="border-t border-white/6 px-4 py-3 space-y-1.5 bg-black/20">
+                  {gs.rankings.map((t, pos) => (
+                    <div key={t.id} className="flex items-center gap-3">
+                      <span className={`text-xs font-bold w-4 ${pos < 2 ? 'text-white/60' : 'text-white/20'}`}>
+                        {pos + 1}
+                      </span>
+                      <span className="text-base">{getFlagEmoji(t.flagCode)}</span>
+                      <span className={`text-sm ${pos < 2 ? 'text-white/80' : 'text-white/30'}`}>
+                        {t.isPlayoffWinner ? t.placeholderLabel : t.name}
+                      </span>
+                      {pos < 2 && (
+                        <span className="ml-auto text-[9px] text-white/30 uppercase tracking-wide">Advance</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+    </div>
+  );
+}
+
+function ThirdPlaceSection({ teams }: { teams: BracketSubmission['qualifiedThirdPlace'] }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {teams.map((t) => (
+        <div key={t.id} className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-white/8 bg-surface-2">
+          <span className="text-lg">{getFlagEmoji(t.flagCode)}</span>
+          <span className="text-xs text-white/70 truncate">
+            {t.isPlayoffWinner ? t.placeholderLabel : t.name}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const DEV_ADDRESS = process.env.NODE_ENV === 'development' ? '0xdevtest' : null;
+
+export default function BracketDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const { address: walletAddress, isConnected } = useAccount();
+  const address = DEV_ADDRESS ?? walletAddress ?? undefined;
+  const [bracket, setBracket] = useState<BracketSubmission | null>(null);
+  const [bracketIndex, setBracketIndex] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!address) return;
+    const all = loadSubmissions(address);
+    const idx = all.findIndex((b) => b.id === id);
+    if (idx >= 0) {
+      setBracket(all[idx]);
+      setBracketIndex(idx);
+    }
+    setLoading(false);
+  }, [address, id]);
+
+  if (!mounted) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Spinner className="w-8 h-8 text-accent" />
+    </div>
+  );
+
+  if (!isConnected && !DEV_ADDRESS) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+        <div className="text-4xl">🔒</div>
+        <h2 className="text-xl font-bold">Connect Your Wallet</h2>
+        <WalletButton />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Spinner className="w-8 h-8 text-accent" />
+      </div>
+    );
+  }
+
+  if (!bracket) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
+        <div className="text-4xl">🤷</div>
+        <h2 className="text-xl font-bold">Bracket not found</h2>
+        <Link href="/my-brackets" className="text-sm text-white/50 hover:text-white underline">
+          Back to My Brackets
+        </Link>
+      </div>
+    );
+  }
+
+  const champion = bracket.champion;
+  const champName = champion
+    ? champion.isPlayoffWinner
+      ? champion.placeholderLabel
+      : champion.name
+    : null;
+
+  const submittedDate = new Date(bracket.submittedAt).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  // Find the Final match to get finalists for score display
+  const finalMatch = bracket.knockoutPicks.find((m) => m.round === 'F');
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+      {/* Back + header */}
+      <div className="flex items-center gap-4">
+        <Link href="/my-brackets" className="text-white/40 hover:text-white/70 transition-colors text-sm flex items-center gap-1">
+          ← My Brackets
+        </Link>
+        <div className="h-4 w-px bg-white/10" />
+        <div>
+          <span className="text-sm text-white/50">Bracket #{bracketIndex + 1}</span>
+          <span className="text-xs text-white/25 ml-2">{submittedDate}</span>
+        </div>
+      </div>
+
+      {/* Champion hero */}
+      {champion && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl border border-[#c9a84c]/25 bg-black p-8 text-center space-y-3"
+        >
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse at 50% -10%, rgba(201,168,76,0.12) 0%, transparent 65%)' }}
+          />
+          <p className="relative text-[10px] font-semibold text-[#c9a84c]/60 uppercase tracking-[0.3em]">
+            2026 World Cup Champion Pick
+          </p>
+          <div className="relative text-7xl leading-none">{getFlagEmoji(champion.flagCode)}</div>
+          <h1 className="relative text-4xl font-black text-white tracking-tight">{champName}</h1>
+
+          {/* Final score prediction */}
+          {bracket.finalScore && finalMatch?.homeTeam && finalMatch?.awayTeam && (
+            <div className="relative mt-4 pt-4 border-t border-white/8">
+              <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3">Predicted Final Score</p>
+              <div className="flex items-center justify-center gap-4">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-xl">{getFlagEmoji(finalMatch.homeTeam.flagCode)}</span>
+                  <span className="text-xs text-white/40">
+                    {finalMatch.homeTeam.isPlayoffWinner ? finalMatch.homeTeam.placeholderLabel : finalMatch.homeTeam.name}
+                  </span>
+                  <span className="text-3xl font-black text-white">{bracket.finalScore.home}</span>
+                </div>
+                <span className="text-white/20 text-xl mb-4">—</span>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-xl">{getFlagEmoji(finalMatch.awayTeam.flagCode)}</span>
+                  <span className="text-xs text-white/40">
+                    {finalMatch.awayTeam.isPlayoffWinner ? finalMatch.awayTeam.placeholderLabel : finalMatch.awayTeam.name}
+                  </span>
+                  <span className="text-3xl font-black text-white">{bracket.finalScore.away}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* Knockout bracket */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest">Knockout Bracket</h2>
+        <KnockoutSection picks={bracket.knockoutPicks} />
+      </section>
+
+      {/* 3rd Place picks */}
+      {bracket.qualifiedThirdPlace?.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest">
+            3rd-Place Qualifiers ({bracket.qualifiedThirdPlace.length})
+          </h2>
+          <ThirdPlaceSection teams={bracket.qualifiedThirdPlace} />
+        </section>
+      )}
+
+      {/* Group Standings */}
+      {bracket.groupStandings?.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest">Group Standings</h2>
+          <GroupsSection standings={bracket.groupStandings} />
+        </section>
+      )}
+    </div>
+  );
+}
