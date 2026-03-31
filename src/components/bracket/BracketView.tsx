@@ -7,6 +7,7 @@ import { getMatchesByRound } from '@/lib/tournament/r32Seeding';
 import { getFlagEmoji } from '@/lib/tournament/teams';
 import { BracketMatch } from './BracketMatch';
 import { Button } from '@/components/ui/Button';
+import { SubmitModal } from '@/components/submission/SubmitModal';
 import type { KnockoutMatch } from '@/types/tournament';
 
 const ROUNDS: { id: KnockoutMatch['round']; label: string }[] = [
@@ -17,7 +18,7 @@ const ROUNDS: { id: KnockoutMatch['round']; label: string }[] = [
   { id: 'F', label: 'Final' },
 ];
 
-function ChampionModal({ onClose }: { onClose: () => void }) {
+function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: () => void }) {
   const { knockoutBracket, finalScore, setFinalScore } = useBracketStore();
   const champion = knockoutBracket.find((m) => m.round === 'F')?.winner;
   const finalMatch = knockoutBracket.find((m) => m.round === 'F');
@@ -146,7 +147,7 @@ function ChampionModal({ onClose }: { onClose: () => void }) {
             transition={{ delay: 0.52 }}
             className="relative"
           >
-            <Button variant="primary" size="lg" className="w-full" onClick={onClose}>
+            <Button variant="primary" size="lg" className="w-full" onClick={() => { onClose(); onSubmit(); }}>
               Lock In My Champion →
             </Button>
           </motion.div>
@@ -187,6 +188,7 @@ export function BracketView() {
   const hasChampion = Boolean(champion && champion.id !== '__TBD__');
 
   const [showModal, setShowModal] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
   const prevHasChampion = useRef(false);
 
   // Auto-show modal when champion is first picked
@@ -243,15 +245,22 @@ export function BracketView() {
         <Button variant="ghost" onClick={() => goToStep('THIRD_PLACE')}>
           ← 3rd Place Picks
         </Button>
-        <Button variant="primary" size="md" disabled={!hasChampion} onClick={() => goToStep('REVIEW')}>
-          Review & Submit →
+        <Button variant="primary" size="md" disabled={!hasChampion} onClick={() => setSubmitOpen(true)}>
+          Submit Bracket →
         </Button>
       </div>
 
       {/* Champion modal overlay */}
       <AnimatePresence>
-        {showModal && <ChampionModal onClose={() => setShowModal(false)} />}
+        {showModal && (
+          <ChampionModal
+            onClose={() => setShowModal(false)}
+            onSubmit={() => setSubmitOpen(true)}
+          />
+        )}
       </AnimatePresence>
+
+      <SubmitModal isOpen={submitOpen} onClose={() => setSubmitOpen(false)} />
     </div>
   );
 }

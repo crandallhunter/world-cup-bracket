@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { GroupStage } from '@/components/groups/GroupStage';
 import { ThirdPlaceSelector } from '@/components/bracket/ThirdPlaceSelector';
 import { BracketView } from '@/components/bracket/BracketView';
-import { SubmitModal } from '@/components/submission/SubmitModal';
 import { StageIntroModal } from '@/components/ui/StageIntroModal';
 import { Button } from '@/components/ui/Button';
 import { useBracketStore } from '@/store/bracketStore';
@@ -16,7 +15,6 @@ const STEPS: { id: BracketStep; label: string }[] = [
   { id: 'GROUPS', label: 'Groups' },
   { id: 'THIRD_PLACE', label: '3rd Place' },
   { id: 'KNOCKOUT', label: 'Bracket' },
-  { id: 'REVIEW', label: 'Submit' },
 ];
 
 const STAGE_INTROS: Record<string, {
@@ -61,17 +59,6 @@ const STAGE_INTROS: Record<string, {
     ],
     ctaLabel: 'Build My Bracket',
   },
-  REVIEW: {
-    icon: '📋',
-    title: 'Stage 4 — Review & Submit',
-    description: 'One last look before it\'s locked in.',
-    steps: [
-      'Confirm your champion pick looks correct.',
-      'Hit "Submit Bracket" to lock it in — this cannot be undone.',
-      'After submitting you\'ll get a share link to post on X (Twitter).',
-    ],
-    ctaLabel: 'Review My Picks',
-  },
 };
 
 const SEEN_KEY = 'wcb_seen_intros';
@@ -108,7 +95,6 @@ const slideVariants = {
 
 export default function BracketPage() {
   const { currentStep, goToStep, resetBracket } = useBracketStore();
-  const [submitOpen, setSubmitOpen] = useState(false);
   const [prevStepIdx, setPrevStepIdx] = useState(0);
   const [introStep, setIntroStep] = useState<string | null>(null);
 
@@ -144,7 +130,6 @@ export default function BracketPage() {
     goToStep(step);
   }
 
-  const champion = useBracketStore((s) => s.knockoutBracket.find((m) => m.round === 'F')?.winner);
   const intro = introStep ? STAGE_INTROS[introStep] : null;
 
   return (
@@ -208,48 +193,6 @@ export default function BracketPage() {
           {currentStep === 'GROUPS' && <GroupStage />}
           {currentStep === 'THIRD_PLACE' && <ThirdPlaceSelector />}
           {currentStep === 'KNOCKOUT' && <BracketView />}
-          {currentStep === 'REVIEW' && (
-            <div className="max-w-lg mx-auto space-y-6 text-center py-8">
-              <div className="text-5xl">🏆</div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold">Ready to Submit?</h2>
-                {champion ? (
-                  <p className="text-white/50">
-                    Your champion pick:{' '}
-                    <span className="text-white font-semibold">{champion.name}</span>
-                  </p>
-                ) : (
-                  <p className="text-white/30 text-sm">
-                    You haven&apos;t picked a champion yet. Go back to the bracket.
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-3 justify-center">
-                <Button variant="secondary" onClick={() => navigateTo('KNOCKOUT')}>
-                  ← Edit Bracket
-                </Button>
-                <Button
-                  variant="primary"
-                  size="lg"
-                  disabled={!champion}
-                  onClick={() => setSubmitOpen(true)}
-                >
-                  Submit Bracket
-                </Button>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  clearSeenIntros();
-                  resetBracket();
-                  navigateTo('GROUPS');
-                }}
-              >
-                Start Over
-              </Button>
-            </div>
-          )}
           {currentStep === 'SUBMITTED' && (
             <div className="text-center py-16 space-y-4">
               <div className="text-5xl">🎉</div>
@@ -262,8 +205,6 @@ export default function BracketPage() {
           )}
         </motion.div>
       </AnimatePresence>
-
-      <SubmitModal isOpen={submitOpen} onClose={() => setSubmitOpen(false)} />
 
       {intro && (
         <StageIntroModal
