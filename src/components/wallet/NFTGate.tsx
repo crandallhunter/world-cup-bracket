@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useNFTBalance } from '@/lib/web3/hooks/useNFTBalance';
 import { WalletButton } from './WalletButton';
 import { Spinner } from '@/components/ui/Spinner';
@@ -51,17 +52,23 @@ export function NFTGate({ children }: NFTGateProps) {
   if (balance === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8 px-4 text-center">
-        <div className="space-y-3">
-          <div className="text-5xl">🔒</div>
-          <h2 className="text-2xl font-bold text-text-primary">NFT Required</h2>
-          <p className="text-text-secondary max-w-sm">
-            You need to hold the World Cup Bracket Challenge NFT to submit a bracket.
-            Each NFT grants one bracket submission.
-          </p>
+        <div className="space-y-6 max-w-sm">
+          <div className="mx-auto w-36 h-36 relative">
+            <Image
+              src="/meebits-futbol.png"
+              alt="Meebits Futbol"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold text-text-primary">Want to join in on the fun?</h2>
+            <p className="text-text-secondary text-sm leading-relaxed">
+              For each Meebits Futbol Avatar you hold you can submit 1 bracket to the contest.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <WalletButton />
-        </div>
+        <WalletButton />
       </div>
     );
   }
