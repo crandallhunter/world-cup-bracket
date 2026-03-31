@@ -1,7 +1,13 @@
 import type { Team, GroupLabel } from '@/types/tournament';
 
 // Official 2026 FIFA World Cup draw — December 5, 2025, Kennedy Center
-// 6 slots remain as playoff placeholders (finals: March 31, 2026)
+// UEFA playoffs decided March 31, 2026:
+//   Path A → Bosnia & Herzegovina (beat Italy on pens)
+//   Path B → Sweden (beat Poland 3-2)
+//   Path C → Türkiye (beat Kosovo 1-0)
+//   Path D → Czechia (beat Denmark on pens)
+// Inter-Conf Playoff 1 → DR Congo (beat Jamaica 1-0 aet)
+// Inter-Conf Playoff 2 → TBD (Iraq vs Bolivia, March 31 late kickoff)
 
 const makeTeam = (
   id: string,
@@ -16,19 +22,13 @@ export const ALL_TEAMS: Team[] = [
   makeTeam('MEX', 'Mexico', 'mx', 'A'),
   makeTeam('KOR', 'South Korea', 'kr', 'A'),
   makeTeam('RSA', 'South Africa', 'za', 'A'),
-  makeTeam('UEFA_D', 'UEFA Playoff D Winner', 'eu', 'A', {
-    isPlayoffWinner: true,
-    placeholderLabel: 'UEFA Playoff D Winner',
-  }),
+  makeTeam('CZE', 'Czechia', 'cz', 'A'),
 
   // Group B
   makeTeam('CAN', 'Canada', 'ca', 'B'),
   makeTeam('SUI', 'Switzerland', 'ch', 'B'),
   makeTeam('QAT', 'Qatar', 'qa', 'B'),
-  makeTeam('UEFA_A', 'UEFA Playoff A Winner', 'eu', 'B', {
-    isPlayoffWinner: true,
-    placeholderLabel: 'UEFA Playoff A Winner',
-  }),
+  makeTeam('BIH', 'Bosnia & Herzegovina', 'ba', 'B'),
 
   // Group C
   makeTeam('BRA', 'Brazil', 'br', 'C'),
@@ -40,10 +40,7 @@ export const ALL_TEAMS: Team[] = [
   makeTeam('USA', 'USA', 'us', 'D'),
   makeTeam('PAR', 'Paraguay', 'py', 'D'),
   makeTeam('AUS', 'Australia', 'au', 'D'),
-  makeTeam('UEFA_C', 'UEFA Playoff C Winner', 'eu', 'D', {
-    isPlayoffWinner: true,
-    placeholderLabel: 'UEFA Playoff C Winner',
-  }),
+  makeTeam('TUR', 'Türkiye', 'tr', 'D'),
 
   // Group E
   makeTeam('GER', 'Germany', 'de', 'E'),
@@ -55,10 +52,7 @@ export const ALL_TEAMS: Team[] = [
   makeTeam('NED', 'Netherlands', 'nl', 'F'),
   makeTeam('JPN', 'Japan', 'jp', 'F'),
   makeTeam('TUN', 'Tunisia', 'tn', 'F'),
-  makeTeam('UEFA_B', 'UEFA Playoff B Winner', 'eu', 'F', {
-    isPlayoffWinner: true,
-    placeholderLabel: 'UEFA Playoff B Winner',
-  }),
+  makeTeam('SWE', 'Sweden', 'se', 'F'),
 
   // Group G
   makeTeam('BEL', 'Belgium', 'be', 'G'),
@@ -91,10 +85,7 @@ export const ALL_TEAMS: Team[] = [
   makeTeam('POR', 'Portugal', 'pt', 'K'),
   makeTeam('COL', 'Colombia', 'co', 'K'),
   makeTeam('UZB', 'Uzbekistan', 'uz', 'K'),
-  makeTeam('ICP1', 'Inter-Conf. Playoff 1 Winner', 'un', 'K', {
-    isPlayoffWinner: true,
-    placeholderLabel: 'Inter-Conf. Playoff 1 Winner',
-  }),
+  makeTeam('COD', 'DR Congo', 'cd', 'K'),
 
   // Group L
   makeTeam('ENG', 'England', 'gb-eng', 'L'),

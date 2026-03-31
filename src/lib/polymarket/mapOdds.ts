@@ -49,6 +49,17 @@ export const POLYMARKET_NAME_MAP: Record<string, string> = {
   "Cote d'Ivoire": 'CIV',
   'Ivory Coast (Côte d\'Ivoire)': 'CIV',
   'Algeria': 'ALG',
+  'Bosnia': 'BIH',
+  'Bosnia and Herzegovina': 'BIH',
+  'Bosnia & Herzegovina': 'BIH',
+  'Czech Republic': 'CZE',
+  'Czechia': 'CZE',
+  'Sweden': 'SWE',
+  'Turkey': 'TUR',
+  'Türkiye': 'TUR',
+  'DR Congo': 'COD',
+  'Congo DR': 'COD',
+  'Democratic Republic of Congo': 'COD',
 };
 
 export function normalizeOutcomeToTeamId(name: string): string | null {
