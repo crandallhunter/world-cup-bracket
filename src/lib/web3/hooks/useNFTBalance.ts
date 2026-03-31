@@ -2,6 +2,7 @@
 
 import { useReadContract } from 'wagmi';
 import { useAccount } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
 import { NFT_ABI, NFT_CONTRACT_ADDRESS } from '../nftContract';
 
 export function useNFTBalance() {
@@ -12,6 +13,7 @@ export function useNFTBalance() {
     abi: NFT_ABI,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
+    chainId: mainnet.id,
     query: {
       enabled: Boolean(isConnected && address),
       retry: 1,
