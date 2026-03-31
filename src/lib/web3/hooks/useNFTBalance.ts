@@ -14,6 +14,7 @@ export function useNFTBalance() {
     args: address ? [address] : undefined,
     query: {
       enabled: Boolean(isConnected && address),
+      retry: 1,
     },
   });
 
@@ -21,7 +22,7 @@ export function useNFTBalance() {
 
   return {
     balance,
-    isLoading: isConnected && isLoading,
+    isLoading: isConnected && isLoading && !error,
     error: error?.message,
     address,
     isConnected,
