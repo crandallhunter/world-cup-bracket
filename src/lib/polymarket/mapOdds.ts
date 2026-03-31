@@ -1,8 +1,7 @@
-// Maps Polymarket outcome strings to our canonical Team.id values
-// Polymarket may use different spellings, so we normalize here
+// Maps Polymarket country name strings (from "Will [X] win..." questions)
+// to our canonical Team.id values.
 
 export const POLYMARKET_NAME_MAP: Record<string, string> = {
-  // Common variations
   'Argentina': 'ARG',
   'Australia': 'AUS',
   'Austria': 'AUT',
@@ -48,11 +47,11 @@ export const POLYMARKET_NAME_MAP: Record<string, string> = {
   'Ivory Coast': 'CIV',
   "Côte d'Ivoire": 'CIV',
   "Cote d'Ivoire": 'CIV',
-  'Côte dIvoire': 'CIV',
-  'Belgium ': 'BEL', // trailing space guard
+  'Ivory Coast (Côte d\'Ivoire)': 'CIV',
+  'Algeria': 'ALG',
 };
 
-export function normalizeOutcomeToTeamId(outcome: string): string | null {
-  const trimmed = outcome.trim();
+export function normalizeOutcomeToTeamId(name: string): string | null {
+  const trimmed = name.trim();
   return POLYMARKET_NAME_MAP[trimmed] ?? null;
 }

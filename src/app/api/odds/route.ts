@@ -1,92 +1,89 @@
 import { NextResponse } from 'next/server';
-import type { GammaMarket, OddsMap, TeamOdds } from '@/types/polymarket';
+import type { OddsMap, TeamOdds } from '@/types/polymarket';
 import { normalizeOutcomeToTeamId } from '@/lib/polymarket/mapOdds';
 import { FALLBACK_ODDS } from '@/lib/polymarket/fallbackOdds';
 
-const GAMMA_API = 'https://gamma-api.polymarket.com/markets';
-
-// Try multiple search queries in order of specificity
-const SEARCH_QUERIES = [
-  '2026 FIFA World Cup winner',
-  '2026 World Cup winner',
-  'World Cup 2026 champion',
-  'FIFA World Cup 2026',
-];
+// Direct event ID for "2026 FIFA World Cup Winner"
+// https://polymarket.com/event/2026-fifa-world-cup-winner-595
+const EVENT_ID = '30615';
+const GAMMA_EVENT_URL = `https://gamma-api.polymarket.com/events/${EVENT_ID}`;
 
 export const revalidate = 300; // 5-minute server-side cache
 
-async function tryFetchMarket(query: string): Promise<GammaMarket | null> {
-  try {
-    const url = new URL(GAMMA_API);
-    url.searchParams.set('search', query);
-    url.searchParams.set('active', 'true');
-    url.searchParams.set('limit', '20');
+interface GammaMarket {
+  id: string;
+  question: string;
+  outcomes: string;       // JSON-encoded array e.g. '["Yes","No"]'
+  outcomePrices: string;  // JSON-encoded array e.g. '["0.1625","0.8375"]'
+  active: boolean;
+  closed: boolean;
+  liquidity?: string;
+}
 
-    const res = await fetch(url.toString(), {
+interface GammaEvent {
+  markets: GammaMarket[];
+  volume?: string;
+}
+
+export async function GET() {
+  try {
+    const res = await fetch(GAMMA_EVENT_URL, {
       headers: { Accept: 'application/json' },
       next: { revalidate: 300 },
     });
 
-    if (!res.ok) return null;
-    const markets: GammaMarket[] = await res.json();
+    if (!res.ok) throw new Error(`Gamma API returned ${res.status}`);
 
-    return (
-      markets
-        .filter((m) => !m.closed && m.outcomes && m.outcomePrices)
-        .sort((a, b) => parseFloat(b.liquidity || '0') - parseFloat(a.liquidity || '0'))
-        .find((m) => {
-          const q = m.question.toLowerCase();
-          return q.includes('world cup') && (q.includes('winner') || q.includes('champion'));
-        }) ?? null
+    const event: GammaEvent = await res.json();
+    const markets: GammaMarket[] = event.markets ?? [];
+
+    const oddsMap: OddsMap = {};
+
+    for (const market of markets) {
+      if (market.closed) continue;
+
+      // Extract country name from "Will [Country] win the 2026 FIFA World Cup?"
+      const match = market.question.match(/^Will (.+?) win the 2026 FIFA World Cup\??$/i);
+      if (!match) continue;
+
+      const countryName = match[1].trim();
+      const teamId = normalizeOutcomeToTeamId(countryName);
+      if (!teamId) continue;
+
+      let prices: string[] = [];
+      try {
+        prices = JSON.parse(market.outcomePrices);
+      } catch {
+        continue;
+      }
+
+      // outcomePrices[0] is the Yes price
+      const probability = parseFloat(prices[0] ?? '0');
+      if (probability <= 0) continue;
+
+      const teamOdds: TeamOdds = {
+        teamId,
+        probability,
+        displayPct: `${Math.round(probability * 100)}%`,
+      };
+      oddsMap[teamId] = teamOdds;
+    }
+
+    if (Object.keys(oddsMap).length === 0) {
+      return NextResponse.json(
+        { ...FALLBACK_ODDS, __source: 'fallback' },
+        { headers: { 'X-Odds-Source': 'fallback' } }
+      );
+    }
+
+    return NextResponse.json(
+      { ...oddsMap, __source: 'live', __volume: event.volume ?? null },
+      { headers: { 'X-Odds-Source': 'live' } }
     );
   } catch {
-    return null;
-  }
-}
-
-export async function GET() {
-  // Try each query until we find a live market
-  let targetMarket: GammaMarket | null = null;
-  for (const query of SEARCH_QUERIES) {
-    targetMarket = await tryFetchMarket(query);
-    if (targetMarket) break;
-  }
-
-  // No live market found — return fallback odds
-  if (!targetMarket) {
     return NextResponse.json(
       { ...FALLBACK_ODDS, __source: 'fallback' },
       { headers: { 'X-Odds-Source': 'fallback' } }
     );
   }
-
-  let outcomes: string[] = [];
-  let prices: string[] = [];
-  try {
-    outcomes = JSON.parse(targetMarket.outcomes);
-    prices = JSON.parse(targetMarket.outcomePrices);
-  } catch {
-    return NextResponse.json(
-      { ...FALLBACK_ODDS, __source: 'fallback' },
-      { headers: { 'X-Odds-Source': 'fallback' } }
-    );
-  }
-
-  const oddsMap: OddsMap = {};
-  for (let i = 0; i < outcomes.length; i++) {
-    const teamId = normalizeOutcomeToTeamId(outcomes[i]);
-    if (!teamId) continue;
-    const probability = parseFloat(prices[i] ?? '0');
-    const teamOdds: TeamOdds = {
-      teamId,
-      probability,
-      displayPct: `${Math.round(probability * 100)}%`,
-    };
-    oddsMap[teamId] = teamOdds;
-  }
-
-  return NextResponse.json(
-    { ...oddsMap, __source: 'live' },
-    { headers: { 'X-Odds-Source': 'live' } }
-  );
 }

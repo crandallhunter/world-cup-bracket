@@ -9,6 +9,7 @@ interface OddsContextValue {
   isLoading: boolean;
   error: string | null;
   lastUpdated: number | null;
+  volume: string | null;
 }
 
 const OddsContext = createContext<OddsContextValue>({
@@ -17,6 +18,7 @@ const OddsContext = createContext<OddsContextValue>({
   isLoading: false,
   error: null,
   lastUpdated: null,
+  volume: null,
 });
 
 const POLL_INTERVAL = 5 * 60 * 1000;
@@ -27,6 +29,7 @@ export function OddsProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [volume, setVolume] = useState<string | null>(null);
 
   async function fetchOdds() {
     setIsLoading(true);
@@ -36,11 +39,13 @@ export function OddsProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
-      // Strip internal __source key before storing
+      // Strip internal keys before storing
       const source = data.__source as string | undefined;
-      const { __source: _, ...cleanData } = data;
+      const rawVolume = data.__volume as string | undefined | null;
+      const { __source: _s, __volume: _v, ...cleanData } = data;
 
       setOdds(cleanData as OddsMap);
+      if (rawVolume) setVolume(rawVolume);
       setIsLive(source === 'live');
       setLastUpdated(Date.now());
     } catch (err) {
@@ -57,7 +62,7 @@ export function OddsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <OddsContext.Provider value={{ odds, isLive, isLoading, error, lastUpdated }}>
+    <OddsContext.Provider value={{ odds, isLive, isLoading, error, lastUpdated, volume }}>
       {children}
     </OddsContext.Provider>
   );

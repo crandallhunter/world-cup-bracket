@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { TeamOddsGrid } from '@/components/odds/TeamOddsGrid';
 
 export default function HomePage() {
   return (
@@ -83,30 +84,34 @@ export default function HomePage() {
 
       {/* ── HOW IT WORKS ────────────────────────────────────────── */}
       <section className="px-6 sm:px-10 lg:px-16 py-24">
-        <div className="flex items-center gap-3 mb-14">
+        <div className="flex items-center gap-3 mb-16">
           <span className="w-2 h-2 rounded-full bg-[#6366f1]" />
           <span className="text-white/30 text-xs uppercase tracking-[0.2em]">How it works</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="space-y-0">
           {[
-            { num: '01', title: 'Rank the Groups', body: 'Drag teams to predict the finishing order in all 12 groups.' },
-            { num: '02', title: 'Pick 3rd Place', body: 'Choose which 8 third-place teams advance to the Round of 32.' },
-            { num: '03', title: 'Build the Bracket', body: 'Click through each knockout match from R32 to the Final.' },
-            { num: '04', title: 'Crown a Champion', body: 'Pick your winner and lock in your bracket for the challenge.' },
-          ].map((step) => (
-            <div
-              key={step.num}
-              className="relative p-6 rounded-2xl border border-white/8 bg-white/[0.02] overflow-hidden group hover:border-[#6366f1]/30 hover:bg-[#6366f1]/5 transition-colors"
-            >
-              <div className="text-[4rem] font-black text-white/[0.04] leading-none absolute top-4 right-4 select-none">
-                {step.num}
+            { num: '01', title: 'Rank the Groups', body: 'Drag teams to predict the finishing order in all 12 groups. The top 2 from each group advance automatically.' },
+            { num: '02', title: 'Pick 3rd Place', body: 'Choose which 8 of the 12 third-place finishers you think will advance to the Round of 32.' },
+            { num: '03', title: 'Build the Bracket', body: 'Click through every knockout match — Round of 32, Round of 16, Quarters, Semis, and the Final.' },
+            { num: '04', title: 'Crown a Champion', body: 'Pick your winner and lock in your bracket. Each submission is saved to your browser.' },
+          ].map((step, i, arr) => (
+            <div key={step.num} className="flex gap-8 sm:gap-16 group">
+              {/* Left: number + connector */}
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center shrink-0 group-hover:border-[#6366f1]/40 group-hover:bg-[#6366f1]/8 transition-colors">
+                  <span className="text-xs font-black text-white/30 group-hover:text-[#6366f1]/70 transition-colors tracking-widest">{step.num}</span>
+                </div>
+                {i < arr.length - 1 && (
+                  <div className="w-px flex-1 bg-white/6 my-3" />
+                )}
               </div>
-              <div className="w-8 h-8 rounded-lg bg-[#6366f1]/15 flex items-center justify-center mb-5">
-                <span className="text-xs font-bold text-[#6366f1]">{step.num}</span>
+
+              {/* Right: content */}
+              <div className={`pb-12 flex-1 ${i < arr.length - 1 ? '' : ''}`}>
+                <h3 className="text-2xl sm:text-3xl font-black tracking-[-0.02em] mb-3">{step.title}</h3>
+                <p className="text-white/40 text-base leading-relaxed max-w-lg">{step.body}</p>
               </div>
-              <h3 className="font-bold text-base mb-2">{step.title}</h3>
-              <p className="text-white/40 text-sm leading-relaxed">{step.body}</p>
             </div>
           ))}
         </div>
@@ -133,59 +138,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── FLAGS / NATIONS ─────────────────────────────────────── */}
-      <section className="px-6 sm:px-10 lg:px-16 py-20">
-        <div className="flex items-center gap-3 mb-10">
-          <span className="w-2 h-2 rounded-full bg-[#6366f1]" />
-          <span className="text-white/30 text-xs uppercase tracking-[0.2em]">48 nations competing</span>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {[
-            '🇧🇷','🇦🇷','🇫🇷','🇩🇪','🇪🇸','🇵🇹','🇬🇧','🇳🇱',
-            '🇧🇪','🇺🇸','🇲🇽','🇯🇵','🇰🇷','🇲🇦','🇸🇳','🇨🇭',
-            '🇭🇷','🇺🇾','🇨🇴','🇩🇰','🇦🇹','🇸🇦','🇪🇨','🇦🇺',
-            '🇳🇴','🇯🇴','🇺🇿','🇹🇳','🇨🇻','🇳🇿','🇬🇭','🇵🇦',
-          ].map((flag, i) => (
-            <div
-              key={i}
-              className="w-10 h-10 rounded-xl bg-white/4 border border-white/8 flex items-center justify-center text-xl hover:bg-[#6366f1]/15 hover:border-[#6366f1]/30 transition-colors"
-            >
-              {flag}
-            </div>
-          ))}
-          <div className="w-10 h-10 rounded-xl bg-white/4 border border-white/8 flex items-center justify-center text-xs text-white/30 font-bold">
-            +16
-          </div>
-        </div>
-      </section>
-
-      {/* ── BOTTOM CTA ──────────────────────────────────────────── */}
-      <section className="px-6 sm:px-10 lg:px-16 py-24 border-t border-white/6">
-        <div className="max-w-2xl">
-          <h2 className="text-[clamp(2.5rem,6vw,5rem)] font-black leading-[0.9] tracking-[-0.03em] uppercase mb-8">
-            Your bracket.<br />
-            <span className="text-[#6366f1]">Your call.</span>
-          </h2>
-          <p className="text-white/40 text-base max-w-sm leading-relaxed mb-10">
-            48 teams. One champion. Build your bracket before the tournament kicks off.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/bracket"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-[#6366f1] hover:bg-[#4f46e5] text-white font-bold text-sm transition-colors"
-            >
-              Build Your Bracket →
-            </Link>
-            <Link
-              href="/my-brackets"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-white/10 hover:bg-white/5 text-white/50 hover:text-white font-medium text-sm transition-colors"
-            >
-              My Brackets
-            </Link>
-          </div>
-        </div>
-      </section>
+      <TeamOddsGrid />
 
       <style>{`
         @keyframes marquee {
