@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { TeamOddsGrid } from '@/components/odds/TeamOddsGrid';
+import { TopContenders } from '@/components/odds/TopContenders';
 
 export default function HomePage() {
   return (
@@ -132,28 +133,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── BIG STATEMENT ───────────────────────────────────────── */}
-      <section className="px-6 sm:px-10 lg:px-16 py-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="rounded-3xl bg-[#6366f1]/8 border border-[#6366f1]/15 p-10 sm:p-16">
-            <p className="text-[clamp(1.5rem,3.5vw,2.75rem)] font-black leading-[1.1] tracking-[-0.02em] max-w-3xl">
-              Powered by real-time Polymarket odds — see each team's tournament win probability as you build.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-8">
-              {[
-                { label: 'Prediction markets', value: 'Live odds' },
-                { label: 'Tournament format', value: '2026 official' },
-                { label: 'Entry', value: 'Free to play' },
-              ].map((f) => (
-                <div key={f.label}>
-                  <div className="text-[#6366f1] font-bold text-lg">{f.value}</div>
-                  <div className="text-white/35 text-xs uppercase tracking-widest mt-0.5">{f.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ── TOP CONTENDERS ──────────────────────────────────────── */}
+      <TopContenders />
 
       <TeamOddsGrid />
 
