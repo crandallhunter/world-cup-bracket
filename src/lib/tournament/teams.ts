@@ -7,7 +7,7 @@ import type { Team, GroupLabel } from '@/types/tournament';
 //   Path C → Türkiye (beat Kosovo 1-0)
 //   Path D → Czechia (beat Denmark on pens)
 // Inter-Conf Playoff 1 → DR Congo (beat Jamaica 1-0 aet)
-// Inter-Conf Playoff 2 → TBD (Iraq vs Bolivia, March 31 late kickoff)
+// Inter-Conf Playoff 2 → Iraq (beat Bolivia 2-1, April 1)
 
 const makeTeam = (
   id: string,
@@ -70,10 +70,7 @@ export const ALL_TEAMS: Team[] = [
   makeTeam('FRA', 'France', 'fr', 'I'),
   makeTeam('SEN', 'Senegal', 'sn', 'I'),
   makeTeam('NOR', 'Norway', 'no', 'I'),
-  makeTeam('ICP2', 'Inter-Conf. Playoff 2 Winner', 'un', 'I', {
-    isPlayoffWinner: true,
-    placeholderLabel: 'Inter-Conf. Playoff 2 Winner',
-  }),
+  makeTeam('IRQ', 'Iraq', 'iq', 'I'),
 
   // Group J
   makeTeam('ARG', 'Argentina', 'ar', 'J'),

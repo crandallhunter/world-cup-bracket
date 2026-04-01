@@ -57,6 +57,7 @@ export const POLYMARKET_NAME_MAP: Record<string, string> = {
   'Sweden': 'SWE',
   'Turkey': 'TUR',
   'Türkiye': 'TUR',
+  'Iraq': 'IRQ',
   'DR Congo': 'COD',
   'Congo DR': 'COD',
   'Democratic Republic of Congo': 'COD',
