@@ -86,7 +86,7 @@ export default function HomePage() {
       </div>
 
       {/* ── HOW IT WORKS ────────────────────────────────────────── */}
-      <section className="px-6 sm:px-10 lg:px-16 py-28">
+      <section className="px-6 sm:px-10 lg:px-16 pt-24 pb-16">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-[-0.03em] uppercase mb-4">
             How it works
@@ -120,17 +120,6 @@ export default function HomePage() {
                 <p className="text-white/35 text-sm leading-relaxed">{step.body}</p>
               </div>
             ))}
-          </div>
-
-          {/* CTA below steps */}
-          <div className="mt-12 pt-10 border-t border-white/6 flex items-center justify-between">
-            <p className="text-white/30 text-sm">48 teams. One champion. Your prediction.</p>
-            <Link
-              href="/bracket"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#6366f1] hover:bg-[#4f46e5] text-white font-semibold text-sm transition-colors"
-            >
-              Start Building →
-            </Link>
           </div>
         </div>
       </section>
