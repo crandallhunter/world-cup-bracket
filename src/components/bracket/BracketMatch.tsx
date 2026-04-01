@@ -60,7 +60,7 @@ function TeamSlot({
           <span className="font-medium truncate flex-1 text-xs">
             {team.isPlayoffWinner ? (team.placeholderLabel ?? team.name) : team.name}
           </span>
-          {!compact && !team.isPlayoffWinner && <OddsBadge teamId={team.id} className="shrink-0" />}
+          {!team.isPlayoffWinner && <OddsBadge teamId={team.id} className="shrink-0" />}
           {isWinner && <span className="text-white/40 text-xs shrink-0">✓</span>}
         </>
       )}

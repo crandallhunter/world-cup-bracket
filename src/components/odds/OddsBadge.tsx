@@ -16,11 +16,13 @@ export function OddsBadge({ teamId, className }: OddsBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 text-xs font-mono tabular-nums text-text-muted ${className ?? ''}`}
-      title={isLive ? 'Polymarket live probability' : 'Estimated win probability'}
+      className={`inline-flex items-center gap-1 tabular-nums ${className ?? ''}`}
+      title="Chance of winning the 2026 World Cup · Polymarket prediction market"
     >
-      {odds.displayPct}
-      <span className="text-[10px] text-text-muted/50">{isLive ? '●' : 'est.'}</span>
+      <span className="text-xs font-bold text-white/70">{odds.displayPct}</span>
+      <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wide">
+        {isLive ? 'WC ●' : 'WC'}
+      </span>
     </span>
   );
 }
