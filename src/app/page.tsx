@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { TeamOddsGrid } from '@/components/odds/TeamOddsGrid';
 import { TopContenders } from '@/components/odds/TopContenders';
+import { GroupOddsGrid } from '@/components/odds/GroupOddsGrid';
 
 export default function HomePage() {
   return (
@@ -136,7 +136,7 @@ export default function HomePage() {
       {/* ── TOP CONTENDERS ──────────────────────────────────────── */}
       <TopContenders />
 
-      <TeamOddsGrid />
+      <GroupOddsGrid />
 
       <style>{`
         @keyframes marquee {
