@@ -88,10 +88,12 @@ export default function HomePage() {
       {/* ── HOW IT WORKS ────────────────────────────────────────── */}
       <section className="px-6 sm:px-10 lg:px-16 py-28">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-16">
-            <span className="w-2 h-2 rounded-full bg-[#6366f1]" />
-            <span className="text-white/30 text-xs uppercase tracking-[0.2em]">How it works</span>
-          </div>
+          <h2 className="text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-[-0.03em] uppercase mb-4">
+            How it works
+          </h2>
+          <p className="text-white/35 text-base mb-16 max-w-lg">
+            Four steps to build your complete 2026 World Cup prediction — from groups all the way to the Final.
+          </p>
 
           {/* 4-step horizontal row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-0">
@@ -133,9 +135,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── TOP CONTENDERS ──────────────────────────────────────── */}
-      <TopContenders />
+      {/* ── ODDS SECTION ────────────────────────────────────────── */}
+      <section className="px-6 sm:px-10 lg:px-16 pt-20 pb-4">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-[clamp(2rem,3.5vw,3.75rem)] font-black tracking-[-0.03em] uppercase mb-4">
+            What are the odds?
+          </h2>
+          <p className="text-white/35 text-base max-w-lg">
+            Live Polymarket prediction markets — see every team's chance of lifting the trophy, right as the market sees it.
+          </p>
+        </div>
+      </section>
 
+      <TopContenders />
       <GroupOddsGrid />
 
       <style>{`

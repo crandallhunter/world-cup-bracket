@@ -19,14 +19,8 @@ export function GroupOddsGrid() {
   );
 
   return (
-    <section className="px-6 sm:px-10 lg:px-16 pb-24">
+    <section className="px-6 sm:px-10 lg:px-16 pt-8 pb-24">
       <div className="max-w-7xl mx-auto">
-
-        {/* Section label */}
-        <div className="flex items-center gap-3 mb-10">
-          <span className="w-2 h-2 rounded-full bg-[#6366f1]" />
-          <span className="text-white/30 text-xs uppercase tracking-[0.2em]">World Cup Groups · Win Probability</span>
-        </div>
 
         {/* 12-group grid: 4 cols desktop, 2 tablet, 1 mobile */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

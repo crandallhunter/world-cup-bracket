@@ -10,32 +10,31 @@ export function TopContenders() {
 
   const { odds, isLive, volume } = useOddsContext();
 
-  const ranked = [...ALL_TEAMS]
+  const formattedVolume = volume
+    ? (() => {
+        const n = parseFloat(volume);
+        if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
+        if (n >= 1_000_000) return `$${Math.round(n / 1_000_000)}M`;
+        if (n >= 1_000) return `$${Math.round(n / 1_000)}K`;
+        return `$${Math.round(n)}`;
+      })()
+    : null;
+
+  const top3 = [...ALL_TEAMS]
     .filter((t) => !t.isPlayoffWinner && (odds[t.id]?.probability ?? 0) > 0)
     .sort((a, b) => (odds[b.id]?.probability ?? 0) - (odds[a.id]?.probability ?? 0))
-    .slice(0, 5);
-
-  const top3 = ranked.slice(0, 3);
-  const rest = ranked.slice(3, 5);
+    .slice(0, 3);
 
   return (
-    <section className="px-6 sm:px-10 lg:px-16 py-20">
+    <section className="px-6 sm:px-10 lg:px-16 pt-8 pb-4">
       <div className="max-w-7xl mx-auto">
 
-        {/* Section label */}
-        <div className="flex items-center justify-between mb-10">
-          <div className="flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-[#6366f1]" />
-            <span className="text-white/30 text-xs uppercase tracking-[0.2em]">Tournament Favorites</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {mounted && isLive && (
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            )}
-            <span className="text-[10px] text-white/25 uppercase tracking-widest">
-              {mounted && volume ? `${volume} vol · ` : ''}Live · Polymarket
-            </span>
-          </div>
+        {/* Live indicator */}
+        <div className="flex items-center gap-2 mb-8">
+          {mounted && isLive && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
+          <span className="text-[11px] text-white/25 uppercase tracking-widest">
+            {mounted && formattedVolume ? `${formattedVolume} vol · ` : ''}Live · Polymarket
+          </span>
         </div>
 
         {/* Top 3 — hero cards */}
@@ -123,33 +122,6 @@ export function TopContenders() {
             ))
           )}
         </div>
-
-        {/* #4 & #5 — slim strip */}
-        {mounted && rest.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {rest.map((team, i) => {
-              const pct = odds[team.id]?.displayPct ?? '—';
-              const prob = odds[team.id]?.probability ?? 0;
-              return (
-                <div
-                  key={team.id}
-                  className="flex items-center gap-4 px-6 py-4 rounded-xl border border-white/6 bg-white/[0.02]"
-                >
-                  <span className="text-[11px] font-black text-white/20 w-4 shrink-0">#{i + 4}</span>
-                  <span className="text-2xl leading-none">{getFlagEmoji(team.flagCode)}</span>
-                  <span className="text-sm font-semibold text-white/50 flex-1">{team.name}</span>
-                  <div className="w-20 h-1 bg-white/6 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-white/20"
-                      style={{ width: `${prob * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-lg font-black text-white/50 tabular-nums w-14 text-right">{pct}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
 
       </div>
     </section>
