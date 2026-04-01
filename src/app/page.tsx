@@ -98,10 +98,10 @@ export default function HomePage() {
           {/* 4-step horizontal row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-0">
             {[
-              { num: '01', title: 'Rank the Groups', body: 'Drag teams to predict the finishing order in all 12 groups.' },
-              { num: '02', title: 'Pick 3rd Place', body: 'Choose which 8 of the 12 third-place finishers will advance.' },
-              { num: '03', title: 'Build the Bracket', body: 'Click through every knockout match from R32 to the Final.' },
-              { num: '04', title: 'Crown a Champion', body: 'Pick your winner and lock in your bracket.' },
+              { num: '01', title: 'Rank the Groups', body: 'Rank all 4 teams in each of the 12 groups — 1st through 4th.' },
+              { num: '02', title: 'Pick 3rd Place', body: 'Each group has a third-place finisher — pick the 8 that earn a spot in the knockout round.' },
+              { num: '03', title: 'Build the Bracket', body: 'Pick winners for every knockout match from the Round of 32 all the way to the Final.' },
+              { num: '04', title: 'Crown a Champion', body: 'Choose the last team standing and submit your completed bracket.' },
             ].map((step, i, arr) => (
               <div key={step.num} className="relative flex flex-col pr-8 lg:pr-12 mb-12 lg:mb-0">
                 {/* Circle + connector */}
