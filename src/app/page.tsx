@@ -124,10 +124,19 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── SECTION DIVIDER ─────────────────────────────────────── */}
+      <div className="px-6 sm:px-10 lg:px-16">
+        <div className="max-w-7xl mx-auto">
+          <div className="relative h-px">
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.5) 30%, rgba(99,102,241,0.5) 70%, transparent 100%)' }} />
+          </div>
+        </div>
+      </div>
+
       {/* ── ODDS SECTION ────────────────────────────────────────── */}
       <section className="px-6 sm:px-10 lg:px-16 pt-20 pb-4">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-[clamp(2rem,3.5vw,3.75rem)] font-black tracking-[-0.03em] uppercase mb-4">
+          <h2 className="text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-[-0.03em] uppercase mb-4">
             What are the odds?
           </h2>
           <p className="text-white/35 text-base max-w-lg">
