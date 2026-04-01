@@ -86,18 +86,6 @@ export function TopContenders() {
                   {pct}
                 </span>
 
-                {/* Thin bar at bottom */}
-                <div className="mt-auto pt-6">
-                  <div className="h-0.5 w-full bg-white/6 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${prob * 100}%`,
-                        background: isFirst ? '#6366f1' : 'rgba(255,255,255,0.2)',
-                      }}
-                    />
-                  </div>
-                </div>
 
                 {/* Subtle glow for #1 */}
                 {isFirst && (
