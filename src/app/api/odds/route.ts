@@ -61,10 +61,11 @@ export async function GET() {
       const probability = parseFloat(prices[0] ?? '0');
       if (probability <= 0) continue;
 
+      const rounded = Math.round(probability * 100);
       const teamOdds: TeamOdds = {
         teamId,
         probability,
-        displayPct: `${Math.round(probability * 100)}%`,
+        displayPct: rounded < 1 ? '<1%' : `${rounded}%`,
       };
       oddsMap[teamId] = teamOdds;
     }
