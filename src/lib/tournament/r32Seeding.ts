@@ -53,6 +53,14 @@ function assignThirdPlaceTeams(
     }
   }
 
+  // Fallback: if any slots are still unfilled, assign leftover teams in order
+  // (can happen when user's selections don't perfectly match eligibility constraints)
+  for (const matchId of VARIABLE_MATCH_IDS) {
+    if (!assigned[matchId] && remaining.length > 0) {
+      assigned[matchId] = remaining.shift()!;
+    }
+  }
+
   return assigned;
 }
 

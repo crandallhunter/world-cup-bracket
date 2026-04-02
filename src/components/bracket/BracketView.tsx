@@ -22,13 +22,31 @@ function isRoundComplete(matches: KnockoutMatch[]): boolean {
   return matches.length > 0 && matches.every((m) => m.winner && m.winner.id !== '__TBD__');
 }
 
-function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: () => void }) {
-  const { knockoutBracket } = useBracketStore();
+function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmitted: () => void }) {
+  const { knockoutBracket, finalScore, setFinalScore, submitBracket } = useBracketStore();
   const champion = knockoutBracket.find((m) => m.round === 'F')?.winner;
+  const finalMatch = knockoutBracket.find((m) => m.round === 'F');
+  const homeTeam = finalMatch?.homeTeam;
+  const awayTeam = finalMatch?.awayTeam;
+
+  const [home, setHome] = useState(finalScore?.home ?? 0);
+  const [away, setAway] = useState(finalScore?.away ?? 0);
+  const [error, setError] = useState<string | null>(null);
 
   if (!champion || champion.id === '__TBD__') return null;
 
   const champName = champion.isPlayoffWinner ? champion.placeholderLabel : champion.name;
+
+  function handleSubmit() {
+    setFinalScore({ home, away });
+    const result = submitBracket();
+    if (result.success) {
+      onClose();
+      onSubmitted();
+    } else {
+      setError(result.error ?? 'Submission failed');
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -46,14 +64,16 @@ function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
         transition={{ type: 'spring' as const, stiffness: 240, damping: 22 }}
         className="relative z-10 max-w-sm w-full"
       >
-        <div className="relative overflow-hidden rounded-2xl border border-[#c9a84c]/30 bg-black p-8 text-center space-y-6">
+        <div className="relative overflow-hidden rounded-2xl border border-[#c9a84c]/30 bg-black p-8 text-center space-y-5">
           <div
             className="absolute inset-0 pointer-events-none"
             style={{ background: 'radial-gradient(ellipse at 50% -10%, rgba(201,168,76,0.15) 0%, transparent 65%)' }}
           />
+
           <p className="relative text-[10px] font-semibold text-[#c9a84c]/70 uppercase tracking-[0.3em]">
             Your 2026 World Cup Champion
           </p>
+
           <motion.div
             initial={{ scale: 0.3, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -62,6 +82,7 @@ function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
           >
             {getFlagEmoji(champion.flagCode)}
           </motion.div>
+
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -70,13 +91,64 @@ function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
           >
             {champName}
           </motion.h2>
+
+          {/* Score prediction — shown before submit so the order feels natural */}
+          {homeTeam && awayTeam && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.34 }}
+              className="relative space-y-3"
+            >
+              <div className="border-t border-white/8 pt-4 space-y-1">
+                <div className="flex items-center justify-center gap-2">
+                  <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">
+                    Predict the Final Score
+                  </p>
+                  <span className="text-[9px] text-white/20 border border-white/10 rounded-full px-2 py-0.5">
+                    tiebreaker
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-end justify-center gap-4">
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="text-xl">{getFlagEmoji(homeTeam.flagCode)}</span>
+                  <span className="text-[10px] text-white/30 max-w-[72px] text-center truncate">
+                    {homeTeam.isPlayoffWinner ? homeTeam.placeholderLabel : homeTeam.name}
+                  </span>
+                  <input
+                    type="number" min={0} max={20} value={home}
+                    onChange={(e) => setHome(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-14 h-14 text-center text-2xl font-black bg-white/6 border border-white/12 rounded-xl text-white focus:outline-none focus:border-white/35 transition-colors"
+                  />
+                </div>
+                <span className="text-white/20 text-xl mb-3.5">—</span>
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="text-xl">{getFlagEmoji(awayTeam.flagCode)}</span>
+                  <span className="text-[10px] text-white/30 max-w-[72px] text-center truncate">
+                    {awayTeam.isPlayoffWinner ? awayTeam.placeholderLabel : awayTeam.name}
+                  </span>
+                  <input
+                    type="number" min={0} max={20} value={away}
+                    onChange={(e) => setAway(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-14 h-14 text-center text-2xl font-black bg-white/6 border border-white/12 rounded-xl text-white focus:outline-none focus:border-white/35 transition-colors"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {error && (
+            <p className="relative text-sm text-red-400">{error}</p>
+          )}
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.38 }}
+            transition={{ delay: 0.48 }}
             className="relative space-y-3"
           >
-            <Button variant="primary" size="lg" className="w-full" onClick={() => { onClose(); onSubmit(); }}>
+            <Button variant="primary" size="lg" className="w-full" onClick={handleSubmit}>
               Submit My Bracket →
             </Button>
             <button
@@ -106,7 +178,7 @@ function ChampionBadge({ onReopen }: { onReopen: () => void }) {
       animate={{ opacity: 1, y: 0 }}
       className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-[#c9a84c]/20 bg-[#c9a84c]/5 self-start cursor-pointer hover:bg-[#c9a84c]/8 transition-colors"
       onClick={onReopen}
-      title="Click to review champion"
+      title="Click to review & submit"
     >
       <span className="text-lg leading-none">{getFlagEmoji(champion.flagCode)}</span>
       <div className="min-w-0">
@@ -125,7 +197,7 @@ export function BracketView() {
   const hasChampion = Boolean(champion && champion.id !== '__TBD__');
 
   const [showModal, setShowModal] = useState(false);
-  const [submitOpen, setSubmitOpen] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const prevHasChampion = useRef(false);
 
   // Refs for auto-scroll
@@ -138,7 +210,6 @@ export function BracketView() {
     else roundRefs.current.delete(id);
   }, []);
 
-  // Build per-round match data
   const roundMatches = ROUNDS.map(({ id }) => ({
     id,
     matches: getMatchesByRound(knockoutBracket, id),
@@ -151,14 +222,11 @@ export function BracketView() {
       if (isRoundComplete(matches)) nowCompleted.add(id);
     });
 
-    // Find rounds that just completed this render
     for (const { id } of ROUNDS) {
       if (nowCompleted.has(id) && !prevCompletedRounds.current.has(id)) {
-        // Find the next round
         const currentIdx = ROUNDS.findIndex((r) => r.id === id);
         const nextRound = ROUNDS[currentIdx + 1];
         if (nextRound) {
-          // Small delay so the last pick animates first
           setTimeout(() => {
             const nextEl = roundRefs.current.get(nextRound.id);
             const container = scrollContainerRef.current;
@@ -176,7 +244,7 @@ export function BracketView() {
     prevCompletedRounds.current = nowCompleted;
   }, [knockoutBracket]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-show champion modal when Final is picked
+  // Auto-show modal when Final is picked
   useEffect(() => {
     if (hasChampion && !prevHasChampion.current) {
       setShowModal(true);
@@ -184,7 +252,6 @@ export function BracketView() {
     prevHasChampion.current = hasChampion;
   }, [hasChampion]);
 
-  // Determine active round (first incomplete round that has at least one match available)
   const activeRoundId = (() => {
     for (const { id, matches } of roundMatches) {
       if (!isRoundComplete(matches)) return id;
@@ -200,7 +267,6 @@ export function BracketView() {
         )}
       </AnimatePresence>
 
-      {/* Bracket header */}
       <div className="flex items-center justify-between">
         <p className="text-[10px] text-white/20 uppercase tracking-widest">
           % = tournament win probability
@@ -210,7 +276,6 @@ export function BracketView() {
         </p>
       </div>
 
-      {/* Scrollable bracket */}
       <div ref={scrollContainerRef} className="overflow-x-auto pb-3 -mx-4 px-4">
         <div className="flex gap-4 min-w-max">
           {roundMatches.map(({ id, matches }) => {
@@ -225,7 +290,6 @@ export function BracketView() {
                 className="flex flex-col gap-2 transition-opacity duration-500"
                 style={{ opacity: complete && !isActive ? 0.45 : 1 }}
               >
-                {/* Round header */}
                 <div className="relative text-center pb-1.5 border-b border-white/6">
                   <span
                     className="text-[10px] font-semibold uppercase tracking-widest transition-colors duration-300"
@@ -233,7 +297,6 @@ export function BracketView() {
                   >
                     {label}
                   </span>
-                  {/* Active round indicator dot */}
                   {isActive && (
                     <motion.span
                       layoutId="active-round-dot"
@@ -244,7 +307,6 @@ export function BracketView() {
                     <span className="absolute -bottom-[3px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white/20" />
                   )}
                 </div>
-
                 <div className="flex flex-col justify-around gap-2 flex-1">
                   {matches.map((match) => (
                     <BracketMatch
@@ -264,7 +326,7 @@ export function BracketView() {
         <Button variant="ghost" onClick={() => goToStep('THIRD_PLACE')}>
           ← 3rd Place Picks
         </Button>
-        <Button variant="primary" size="md" disabled={!hasChampion} onClick={() => setSubmitOpen(true)}>
+        <Button variant="primary" size="md" disabled={!hasChampion} onClick={() => setShowModal(true)}>
           Submit Bracket →
         </Button>
       </div>
@@ -273,12 +335,13 @@ export function BracketView() {
         {showModal && (
           <ChampionModal
             onClose={() => setShowModal(false)}
-            onSubmit={() => setSubmitOpen(true)}
+            onSubmitted={() => setShowSuccess(true)}
           />
         )}
       </AnimatePresence>
 
-      <SubmitModal isOpen={submitOpen} onClose={() => setSubmitOpen(false)} />
+      {/* Success modal — shown after submission completes */}
+      <SubmitModal isOpen={showSuccess} onClose={() => setShowSuccess(false)} />
     </div>
   );
 }
