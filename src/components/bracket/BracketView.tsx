@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBracketStore } from '@/store/bracketStore';
 import { getMatchesByRound } from '@/lib/tournament/r32Seeding';
@@ -18,6 +18,10 @@ const ROUNDS: { id: KnockoutMatch['round']; label: string }[] = [
   { id: 'F', label: 'Final' },
 ];
 
+function isRoundComplete(matches: KnockoutMatch[]): boolean {
+  return matches.length > 0 && matches.every((m) => m.winner && m.winner.id !== '__TBD__');
+}
+
 function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: () => void }) {
   const { knockoutBracket } = useBracketStore();
   const champion = knockoutBracket.find((m) => m.round === 'F')?.winner;
@@ -28,7 +32,6 @@ function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <motion.div
         className="absolute inset-0 bg-black/85 backdrop-blur-md"
         initial={{ opacity: 0 }}
@@ -36,8 +39,6 @@ function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
         exit={{ opacity: 0 }}
         onClick={onClose}
       />
-
-      {/* Card */}
       <motion.div
         initial={{ scale: 0.88, opacity: 0, y: 24 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -46,18 +47,13 @@ function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
         className="relative z-10 max-w-sm w-full"
       >
         <div className="relative overflow-hidden rounded-2xl border border-[#c9a84c]/30 bg-black p-8 text-center space-y-6">
-          {/* Gold radial glow */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{ background: 'radial-gradient(ellipse at 50% -10%, rgba(201,168,76,0.15) 0%, transparent 65%)' }}
           />
-
-          {/* Label */}
           <p className="relative text-[10px] font-semibold text-[#c9a84c]/70 uppercase tracking-[0.3em]">
             Your 2026 World Cup Champion
           </p>
-
-          {/* Big flag */}
           <motion.div
             initial={{ scale: 0.3, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -66,8 +62,6 @@ function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
           >
             {getFlagEmoji(champion.flagCode)}
           </motion.div>
-
-          {/* Country name */}
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -76,8 +70,6 @@ function ChampionModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (
           >
             {champName}
           </motion.h2>
-
-          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -136,7 +128,55 @@ export function BracketView() {
   const [submitOpen, setSubmitOpen] = useState(false);
   const prevHasChampion = useRef(false);
 
-  // Auto-show modal when champion is first picked
+  // Refs for auto-scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const roundRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const prevCompletedRounds = useRef<Set<string>>(new Set());
+
+  const setRoundRef = useCallback((id: string) => (el: HTMLDivElement | null) => {
+    if (el) roundRefs.current.set(id, el);
+    else roundRefs.current.delete(id);
+  }, []);
+
+  // Build per-round match data
+  const roundMatches = ROUNDS.map(({ id }) => ({
+    id,
+    matches: getMatchesByRound(knockoutBracket, id),
+  }));
+
+  // Auto-scroll when a round becomes complete
+  useEffect(() => {
+    const nowCompleted = new Set<string>();
+    roundMatches.forEach(({ id, matches }) => {
+      if (isRoundComplete(matches)) nowCompleted.add(id);
+    });
+
+    // Find rounds that just completed this render
+    for (const { id } of ROUNDS) {
+      if (nowCompleted.has(id) && !prevCompletedRounds.current.has(id)) {
+        // Find the next round
+        const currentIdx = ROUNDS.findIndex((r) => r.id === id);
+        const nextRound = ROUNDS[currentIdx + 1];
+        if (nextRound) {
+          // Small delay so the last pick animates first
+          setTimeout(() => {
+            const nextEl = roundRefs.current.get(nextRound.id);
+            const container = scrollContainerRef.current;
+            if (nextEl && container) {
+              const containerLeft = container.getBoundingClientRect().left;
+              const elLeft = nextEl.getBoundingClientRect().left;
+              const scrollLeft = container.scrollLeft + (elLeft - containerLeft) - 24;
+              container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+            }
+          }, 400);
+        }
+      }
+    }
+
+    prevCompletedRounds.current = nowCompleted;
+  }, [knockoutBracket]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-show champion modal when Final is picked
   useEffect(() => {
     if (hasChampion && !prevHasChampion.current) {
       setShowModal(true);
@@ -144,16 +184,23 @@ export function BracketView() {
     prevHasChampion.current = hasChampion;
   }, [hasChampion]);
 
+  // Determine active round (first incomplete round that has at least one match available)
+  const activeRoundId = (() => {
+    for (const { id, matches } of roundMatches) {
+      if (!isRoundComplete(matches)) return id;
+    }
+    return 'F';
+  })();
+
   return (
     <div className="space-y-4">
-      {/* Champion badge (shown after modal is dismissed) */}
       <AnimatePresence>
         {hasChampion && !showModal && (
           <ChampionBadge onReopen={() => setShowModal(true)} />
         )}
       </AnimatePresence>
 
-      {/* Bracket header with Polymarket note */}
+      {/* Bracket header */}
       <div className="flex items-center justify-between">
         <p className="text-[10px] text-white/20 uppercase tracking-widest">
           % = tournament win probability
@@ -164,15 +211,40 @@ export function BracketView() {
       </div>
 
       {/* Scrollable bracket */}
-      <div className="overflow-x-auto pb-3 -mx-4 px-4">
+      <div ref={scrollContainerRef} className="overflow-x-auto pb-3 -mx-4 px-4">
         <div className="flex gap-4 min-w-max">
-          {ROUNDS.map(({ id, label }) => {
-            const matches = getMatchesByRound(knockoutBracket, id);
+          {roundMatches.map(({ id, matches }) => {
+            const label = ROUNDS.find((r) => r.id === id)!.label;
+            const complete = isRoundComplete(matches);
+            const isActive = id === activeRoundId;
+
             return (
-              <div key={id} className="flex flex-col gap-2">
-                <div className="text-[10px] font-semibold text-white/25 uppercase tracking-widest text-center pb-1.5 border-b border-white/6">
-                  {label}
+              <div
+                key={id}
+                ref={setRoundRef(id)}
+                className="flex flex-col gap-2 transition-opacity duration-500"
+                style={{ opacity: complete && !isActive ? 0.45 : 1 }}
+              >
+                {/* Round header */}
+                <div className="relative text-center pb-1.5 border-b border-white/6">
+                  <span
+                    className="text-[10px] font-semibold uppercase tracking-widest transition-colors duration-300"
+                    style={{ color: isActive ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)' }}
+                  >
+                    {label}
+                  </span>
+                  {/* Active round indicator dot */}
+                  {isActive && (
+                    <motion.span
+                      layoutId="active-round-dot"
+                      className="absolute -bottom-[3px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#6366f1]"
+                    />
+                  )}
+                  {complete && (
+                    <span className="absolute -bottom-[3px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white/20" />
+                  )}
                 </div>
+
                 <div className="flex flex-col justify-around gap-2 flex-1">
                   {matches.map((match) => (
                     <BracketMatch
@@ -197,7 +269,6 @@ export function BracketView() {
         </Button>
       </div>
 
-      {/* Champion modal overlay */}
       <AnimatePresence>
         {showModal && (
           <ChampionModal
