@@ -109,7 +109,38 @@ export function resolveR32Bracket(
   }));
 }
 
-// Build subsequent knockout rounds from previous round winners
+// ─── Official FIFA R16 pairings ──────────────────────────────────────────────
+// Each entry is [home R32 position, away R32 position].
+// Ordered so that sequential pairing in QF/SF/F produces the correct bracket.
+//
+// Bracket tree (← side 1 | side 2 →):
+//   R16_M1 (3v6)  ─┐                           ┌─ R16_M5 (2v5)
+//                    ├ QF_M1 ─┐           ┌─ QF_M3 ├
+//   R16_M2 (1v4)  ─┘          │           │          └─ R16_M6 (7v16)
+//                               ├ SF_M1   SF_M2 ├
+//   R16_M3 (12v8) ─┐          │           │          ┌─ R16_M7 (11v14)
+//                    ├ QF_M2 ─┘           └─ QF_M4 ├
+//   R16_M4 (10v9) ─┘                           └─ R16_M8 (13v15)
+//
+const R16_PAIRINGS: [number, number][] = [
+  [3, 6],    // R16_M1: E1/3rd winner vs I1/3rd winner
+  [1, 4],    // R16_M2: A2/B2 winner vs F1/C2 winner
+  [12, 8],   // R16_M3: K2/L2 winner vs H1/J2 winner
+  [10, 9],   // R16_M4: D1/3rd winner vs G1/3rd winner
+  [2, 5],    // R16_M5: C1/F2 winner vs E2/I2 winner
+  [7, 16],   // R16_M6: A1/3rd winner vs L1/3rd winner
+  [11, 14],  // R16_M7: J1/H2 winner vs D2/G2 winner
+  [13, 15],  // R16_M8: B1/3rd winner vs K1/3rd winner
+];
+
+// Lookup: R32 position → [R16 match position, isHome]
+const R32_TO_R16: Record<number, [number, boolean]> = {};
+R16_PAIRINGS.forEach(([homePos, awayPos], idx) => {
+  R32_TO_R16[homePos] = [idx + 1, true];
+  R32_TO_R16[awayPos] = [idx + 1, false];
+});
+
+// Build subsequent knockout rounds from previous round winners (sequential pairing)
 export function buildNextRound(
   prevMatches: KnockoutMatch[],
   round: 'R16' | 'QF' | 'SF' | 'F'
@@ -130,13 +161,29 @@ export function buildNextRound(
   return nextMatches;
 }
 
+// Build R16 using official FIFA bracket pairings (not sequential)
+function buildR16(r32: KnockoutMatch[]): KnockoutMatch[] {
+  return R16_PAIRINGS.map(([homePos, awayPos], idx) => {
+    const homeR32 = r32.find((m) => m.position === homePos);
+    const awayR32 = r32.find((m) => m.position === awayPos);
+    return {
+      matchId: `R16_M${idx + 1}`,
+      round: 'R16' as const,
+      homeTeam: homeR32?.winner,
+      awayTeam: awayR32?.winner,
+      winner: undefined,
+      position: idx + 1,
+    };
+  });
+}
+
 // Build the full initial knockout bracket structure
 export function buildFullBracket(
   standings: Record<GroupLabel, GroupStanding>,
   advancingThirds: ThirdPlaceTeam[]
 ): KnockoutMatch[] {
   const r32 = resolveR32Bracket(standings, advancingThirds);
-  const r16 = buildNextRound(r32, 'R16');
+  const r16 = buildR16(r32);
   const qf = buildNextRound(r16, 'QF');
   const sf = buildNextRound(qf, 'SF');
   const final = buildNextRound(sf, 'F');
@@ -161,12 +208,25 @@ export function propagateWinner(
   if (currentRoundIdx === roundOrder.length - 1) return updated; // Final
 
   const nextRound = roundOrder[currentRoundIdx + 1];
-  const matchesInCurrentRound = updated
-    .filter((m) => m.round === match.round)
-    .sort((a, b) => a.position - b.position);
-  const matchIndexInRound = matchesInCurrentRound.findIndex((m) => m.matchId === matchId);
-  const nextMatchPosition = Math.floor(matchIndexInRound / 2) + 1;
-  const isHome = matchIndexInRound % 2 === 0;
+
+  let nextMatchPosition: number;
+  let isHome: boolean;
+
+  if (match.round === 'R32') {
+    // R32→R16 uses FIFA's non-sequential bracket pairings
+    const mapping = R32_TO_R16[match.position];
+    if (!mapping) return updated;
+    [nextMatchPosition, isHome] = mapping;
+  } else {
+    // R16→QF, QF→SF, SF→F use sequential pairing
+    const matchesInCurrentRound = updated
+      .filter((m) => m.round === match.round)
+      .sort((a, b) => a.position - b.position);
+    const matchIndexInRound = matchesInCurrentRound.findIndex((m) => m.matchId === matchId);
+    nextMatchPosition = Math.floor(matchIndexInRound / 2) + 1;
+    isHome = matchIndexInRound % 2 === 0;
+  }
+
   const nextMatchId = `${nextRound}_M${nextMatchPosition}`;
 
   return updated.map((m) => {
