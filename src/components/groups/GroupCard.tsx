@@ -5,19 +5,17 @@ import { motion } from 'framer-motion';
 import type { GroupLabel, GroupStanding, Team } from '@/types/tournament';
 import { useBracketStore } from '@/store/bracketStore';
 import { TeamRow } from './TeamRow';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
 
 interface GroupCardProps {
   group: GroupLabel;
   standing: GroupStanding;
-  isActive?: boolean;
 }
 
-export function GroupCard({ group, standing, isActive = false }: GroupCardProps) {
+export function GroupCard({ group, standing }: GroupCardProps) {
   const [localRankings, setLocalRankings] = useState<[Team, Team, Team, Team]>(standing.rankings);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
-  const { setGroupRanking, markGroupComplete } = useBracketStore();
+  const { setGroupRanking } = useBracketStore();
 
   function moveTeam(fromIdx: number, toIdx: number) {
     if (fromIdx === toIdx) return;
@@ -28,11 +26,6 @@ export function GroupCard({ group, standing, isActive = false }: GroupCardProps)
     setGroupRanking(group, next);
   }
 
-  function confirmGroup() {
-    setGroupRanking(group, localRankings);
-    markGroupComplete(group);
-  }
-
   return (
     <motion.div
       layout
@@ -40,8 +33,6 @@ export function GroupCard({ group, standing, isActive = false }: GroupCardProps)
         'rounded-xl border transition-colors',
         standing.isComplete
           ? 'border-white/10 bg-surface-2'
-          : isActive
-          ? 'border-white/20 bg-surface-2'
           : 'border-white/6 bg-surface-1'
       )}
     >
@@ -51,11 +42,6 @@ export function GroupCard({ group, standing, isActive = false }: GroupCardProps)
           <span className="text-[10px] font-semibold text-white/25 uppercase tracking-widest">Group</span>
           <span className="text-base font-black text-white">{group}</span>
         </div>
-        {standing.isComplete && (
-          <span className="text-[10px] text-white/30 font-medium tracking-wider uppercase">
-            ✓ Done
-          </span>
-        )}
       </div>
 
       {/* Teams — drag to reorder */}
@@ -78,13 +64,6 @@ export function GroupCard({ group, standing, isActive = false }: GroupCardProps)
         ))}
       </div>
 
-      {!standing.isComplete && (
-        <div className="px-2 pb-2">
-          <Button variant="secondary" size="sm" className="w-full" onClick={confirmGroup}>
-            Confirm Group {group}
-          </Button>
-        </div>
-      )}
     </motion.div>
   );
 }

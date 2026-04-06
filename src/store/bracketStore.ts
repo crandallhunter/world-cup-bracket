@@ -37,6 +37,7 @@ interface BracketStore {
 
   setGroupRanking: (group: GroupLabel, rankings: [Team, Team, Team, Team]) => void;
   markGroupComplete: (group: GroupLabel) => void;
+  markAllGroupsComplete: () => void;
   setSelectedThirdPlace: (teams: ThirdPlaceTeam[]) => void;
   rebuildKnockoutBracket: () => void;
   setKnockoutPick: (matchId: string, winner: Team) => void;
@@ -74,6 +75,16 @@ export const useBracketStore = create<BracketStore>((set, get) => ({
         [group]: { ...state.groupStandings[group], isComplete: true },
       },
     }));
+  },
+
+  markAllGroupsComplete: () => {
+    set((state) => {
+      const updated = { ...state.groupStandings };
+      for (const g of GROUP_LABELS) {
+        updated[g] = { ...updated[g], isComplete: true };
+      }
+      return { groupStandings: updated };
+    });
   },
 
   setSelectedThirdPlace: (teams) => {
