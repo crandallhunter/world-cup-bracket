@@ -36,7 +36,7 @@ export const DIVISIONS: Division[] = [
     minNFTs: 7,
     color: 'from-cyan-300 to-blue-300',
     bgGradient: 'from-cyan-500/20 to-blue-500/20',
-    icon: '🏅',
+    icon: '⭐',
     prize: 'TBD',
   },
   {
@@ -68,7 +68,7 @@ export const DIVISIONS: Division[] = [
   },
   {
     id: 'open',
-    name: 'Open',
+    name: 'Free',
     minNFTs: 0,
     color: 'from-white/60 to-white/40',
     bgGradient: 'from-white/5 to-white/10',

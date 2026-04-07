@@ -177,7 +177,7 @@ function MainPhase({
           className="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl bg-white/[0.04] border border-white/8 text-white/70 font-medium text-sm hover:bg-white/[0.08] transition-all"
         >
           <span>✉️</span>
-          Play with Email — Open Division
+          Play with Email — Free Division
         </button>
       </div>
 
@@ -226,7 +226,7 @@ function EmailPhase({
 
       <div className="text-center mb-6">
         <div className="text-4xl mb-3">🌍</div>
-        <h2 className="text-lg font-bold text-white mb-1">Join the Open Division</h2>
+        <h2 className="text-lg font-bold text-white mb-1">Join the Free Division</h2>
         <p className="text-sm text-white/40">
           Enter your email to participate in the free community division. One bracket per email.
         </p>
@@ -327,7 +327,7 @@ function ConnectedPhase({
           </div>
         ) : (
           <p className="text-sm text-white/40">
-            No Meebits Futbol NFTs found — you'll compete in the Open division. You can still build and submit your bracket!
+            No Meebits Futbol NFTs found — you'll compete in the Free division. You can still build and submit your bracket!
           </p>
         )}
       </div>

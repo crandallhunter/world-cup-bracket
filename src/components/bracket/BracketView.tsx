@@ -241,7 +241,7 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
                   onClick={() => setShowEmailField(true)}
                   className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/8 text-white/60 text-sm hover:bg-white/[0.08] transition-all"
                 >
-                  ✉️ Submit with Email (Open Division)
+                  ✉️ Submit with Email (Free Division)
                 </button>
               ) : (
                 <input
