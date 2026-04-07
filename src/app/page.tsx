@@ -34,7 +34,8 @@ export default function HomePage() {
             Pick every<br />
             <span className="text-[#6366f1]">match.</span><br />
             Crown your<br />
-            champion.
+            champion.<br />
+            <span className="text-[#c9a84c]">Win big.</span>
           </h1>
 
           {/* Subtext + CTA */}
