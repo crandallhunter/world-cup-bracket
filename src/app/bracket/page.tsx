@@ -6,8 +6,10 @@ import { GroupStage } from '@/components/groups/GroupStage';
 import { ThirdPlaceSelector } from '@/components/bracket/ThirdPlaceSelector';
 import { BracketView } from '@/components/bracket/BracketView';
 import { StageIntroModal } from '@/components/ui/StageIntroModal';
+import { WelcomeModal } from '@/components/welcome/WelcomeModal';
 import { Button } from '@/components/ui/Button';
 import { useBracketStore } from '@/store/bracketStore';
+import { useIdentityStore } from '@/store/identityStore';
 import { cn } from '@/lib/utils/cn';
 import type { BracketStep } from '@/types/tournament';
 
@@ -32,7 +34,7 @@ const STAGE_INTROS: Record<string, {
       'Drag and drop the teams within each group to rank them 1st through 4th.',
       'The % next to each team is their estimated tournament win probability from prediction markets.',
       'Top 2 from each group advance automatically. The best 8 third-place teams are picked in the next stage.',
-      'Hit "Confirm Group X" when you\'re happy with a group, then move on to the next.',
+      'Click "Confirm All Groups & Continue" when you\'re happy with your rankings.',
     ],
     ctaLabel: 'Start Picking Groups',
   },
@@ -94,31 +96,60 @@ const slideVariants = {
 };
 
 export default function BracketPage() {
-  const { currentStep, goToStep, resetBracket } = useBracketStore();
+  const { currentStep, goToStep } = useBracketStore();
+  const { hasSeenWelcome, setIdentity } = useIdentityStore();
   const [prevStepIdx, setPrevStepIdx] = useState(0);
   const [introStep, setIntroStep] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const currentIdx = stepIndex(currentStep);
   const direction = currentIdx - prevStepIdx;
 
+  // Hydrate on mount
   useEffect(() => {
-    if (currentStep in STAGE_INTROS) {
+    setMounted(true);
+  }, []);
+
+  // Show welcome modal on first visit, or stage intro if welcome already seen
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (!hasSeenWelcome) {
+      setShowWelcome(true);
+    } else if (currentStep in STAGE_INTROS) {
       const seen = getSeenIntros();
+      // Clear current step so it shows fresh on page load
       seen.delete(currentStep);
       sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
       setIntroStep(currentStep);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [mounted]);
 
+  // Show stage intros on step change (after welcome)
   useEffect(() => {
+    if (!mounted || !hasSeenWelcome) return;
     if (currentStep in STAGE_INTROS) {
       const seen = getSeenIntros();
       if (!seen.has(currentStep)) {
         setIntroStep(currentStep);
       }
     }
-  }, [currentStep]);
+  }, [currentStep, mounted, hasSeenWelcome]);
+
+  function handleWelcomeClose(identity?: { type: 'email'; email: string } | { type: 'wallet' } | { type: 'explore' }) {
+    setShowWelcome(false);
+    if (identity) {
+      setIdentity(identity);
+    } else {
+      setIdentity({ type: 'explore' });
+    }
+    // Show the first stage intro after welcome
+    if (currentStep in STAGE_INTROS) {
+      setIntroStep(currentStep);
+    }
+  }
 
   function closeIntro() {
     if (introStep) markIntroSeen(introStep);
@@ -206,7 +237,13 @@ export default function BracketPage() {
         </motion.div>
       </AnimatePresence>
 
-      {intro && (
+      {/* Welcome modal — shows on first visit */}
+      {mounted && (
+        <WelcomeModal isOpen={showWelcome} onClose={handleWelcomeClose} />
+      )}
+
+      {/* Stage intro modals — show after welcome is dismissed */}
+      {intro && !showWelcome && (
         <StageIntroModal
           isOpen={Boolean(introStep)}
           onClose={closeIntro}

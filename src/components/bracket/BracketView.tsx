@@ -3,12 +3,21 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBracketStore } from '@/store/bracketStore';
+import { useIdentityStore } from '@/store/identityStore';
+import { useUserDivision } from '@/lib/web3/hooks/useUserDivision';
+import { useAccount } from 'wagmi';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { getMatchesByRound } from '@/lib/tournament/r32Seeding';
+import { getOwnedTokenIds } from '@/lib/web3/alchemy';
+import { getDivisionForCount, getDivisionById } from '@/lib/divisions';
+import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { getFlagEmoji } from '@/lib/tournament/teams';
 import { BracketMatch } from './BracketMatch';
 import { Button } from '@/components/ui/Button';
 import { SubmitModal } from '@/components/submission/SubmitModal';
+import { Spinner } from '@/components/ui/Spinner';
 import type { KnockoutMatch } from '@/types/tournament';
+import type { DivisionId } from '@/lib/divisions';
 
 const ROUNDS: { id: KnockoutMatch['round']; label: string }[] = [
   { id: 'R32', label: 'Round of 32' },
@@ -22,8 +31,14 @@ function isRoundComplete(matches: KnockoutMatch[]): boolean {
   return matches.length > 0 && matches.every((m) => m.winner && m.winner.id !== '__TBD__');
 }
 
-function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmitted: () => void }) {
-  const { knockoutBracket, finalScore, setFinalScore, submitBracket } = useBracketStore();
+// ─── Champion Modal ──────────────────────────────────────────────────────────
+
+function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmitted: (divisionId: DivisionId) => void }) {
+  const { knockoutBracket, groupStandings, selectedThirdPlace, finalScore, setFinalScore } = useBracketStore();
+  const { identity } = useIdentityStore();
+  const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
   const champion = knockoutBracket.find((m) => m.round === 'F')?.winner;
   const finalMatch = knockoutBracket.find((m) => m.round === 'F');
   const homeTeam = finalMatch?.homeTeam;
@@ -32,19 +47,92 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
   const [home, setHome] = useState(finalScore?.home ?? 0);
   const [away, setAway] = useState(finalScore?.away ?? 0);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  // Email input for users who haven't set identity yet
+  const [emailInput, setEmailInput] = useState('');
+  const [showEmailField, setShowEmailField] = useState(false);
 
   if (!champion || champion.id === '__TBD__') return null;
 
   const champName = champion.isPlayoffWinner ? champion.placeholderLabel : champion.name;
 
-  function handleSubmit() {
+  // Determine if user can submit
+  const hasWalletIdentity = identity?.type === 'wallet' || isConnected;
+  const hasEmailIdentity = identity?.type === 'email';
+  const canSubmit = hasWalletIdentity || hasEmailIdentity || showEmailField;
+
+  async function handleSubmit() {
+    setError(null);
+    setSubmitting(true);
     setFinalScore({ home, away });
-    const result = submitBracket();
-    if (result.success) {
+
+    try {
+      let identityType: 'wallet' | 'email';
+      let identifier: string;
+      let tokenIds: string[] = [];
+
+      if (hasWalletIdentity && address) {
+        identityType = 'wallet';
+        identifier = address;
+        // Fetch token IDs from Alchemy
+        try {
+          tokenIds = await getOwnedTokenIds(address);
+        } catch {
+          // If Alchemy fails, submit with 0 tokens (Open tier)
+          tokenIds = [];
+        }
+      } else if (hasEmailIdentity && identity?.type === 'email') {
+        identityType = 'email';
+        identifier = identity.email;
+      } else if (showEmailField) {
+        const trimmed = emailInput.trim().toLowerCase();
+        if (!trimmed || !trimmed.includes('@') || !trimmed.includes('.')) {
+          setError('Please enter a valid email address.');
+          setSubmitting(false);
+          return;
+        }
+        identityType = 'email';
+        identifier = trimmed;
+      } else {
+        setError('Please connect a wallet or enter an email to submit.');
+        setSubmitting(false);
+        return;
+      }
+
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identityType,
+          identifier,
+          tokenIds,
+          groupStandings: Object.values(groupStandings),
+          qualifiedThirdPlace: selectedThirdPlace,
+          knockoutPicks: knockoutBracket,
+          champion,
+          finalScore: { home, away },
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? 'Submission failed. Please try again.');
+        setSubmitting(false);
+        return;
+      }
+
+      // Also save to local store for backwards compatibility
+      const { submitBracket } = useBracketStore.getState();
+      submitBracket();
+
       onClose();
-      onSubmitted();
-    } else {
-      setError(result.error ?? 'Submission failed');
+      onSubmitted(data.divisionId as DivisionId);
+    } catch (err) {
+      console.error('[Submit] Error:', err);
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -62,7 +150,7 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.88, opacity: 0, y: 24 }}
         transition={{ type: 'spring' as const, stiffness: 240, damping: 22 }}
-        className="relative z-10 max-w-sm w-full"
+        className="relative z-10 max-w-sm w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="relative overflow-hidden rounded-2xl border border-[#c9a84c]/30 bg-black p-8 text-center space-y-5">
           <div
@@ -92,7 +180,7 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
             {champName}
           </motion.h2>
 
-          {/* Score prediction — shown before submit so the order feels natural */}
+          {/* Score prediction */}
           {homeTeam && awayTeam && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
@@ -138,6 +226,42 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
             </motion.div>
           )}
 
+          {/* Identity section — show if no identity set yet */}
+          {!hasWalletIdentity && !hasEmailIdentity && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="relative space-y-3 border-t border-white/8 pt-4"
+            >
+              <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">
+                How do you want to submit?
+              </p>
+              <button
+                onClick={() => openConnectModal?.()}
+                className="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/20 text-amber-200 font-semibold text-sm hover:from-amber-500/30 hover:to-yellow-500/30 transition-all"
+              >
+                🔗 Connect Wallet
+              </button>
+              {!showEmailField ? (
+                <button
+                  onClick={() => setShowEmailField(true)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/8 text-white/60 text-sm hover:bg-white/[0.08] transition-all"
+                >
+                  ✉️ Submit with Email (Open Division)
+                </button>
+              ) : (
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/25 transition-colors"
+                />
+              )}
+            </motion.div>
+          )}
+
           {error && (
             <p className="relative text-sm text-red-400">{error}</p>
           )}
@@ -148,8 +272,21 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
             transition={{ delay: 0.48 }}
             className="relative space-y-3"
           >
-            <Button variant="primary" size="lg" className="w-full" onClick={handleSubmit}>
-              Submit My Bracket →
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              onClick={handleSubmit}
+              disabled={submitting || (!canSubmit)}
+            >
+              {submitting ? (
+                <span className="flex items-center gap-2">
+                  <Spinner className="w-4 h-4" />
+                  Submitting...
+                </span>
+              ) : (
+                'Submit My Bracket →'
+              )}
             </Button>
             <button
               className="text-xs text-white/25 hover:text-white/50 transition-colors"
@@ -163,6 +300,8 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
     </div>
   );
 }
+
+// ─── Champion Badge ──────────────────────────────────────────────────────────
 
 function ChampionBadge({ onReopen }: { onReopen: () => void }) {
   const { knockoutBracket } = useBracketStore();
@@ -191,6 +330,8 @@ function ChampionBadge({ onReopen }: { onReopen: () => void }) {
   );
 }
 
+// ─── Bracket View ────────────────────────────────────────────────────────────
+
 export function BracketView() {
   const { knockoutBracket, goToStep } = useBracketStore();
   const champion = knockoutBracket.find((m) => m.round === 'F')?.winner;
@@ -198,6 +339,7 @@ export function BracketView() {
 
   const [showModal, setShowModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submittedDivision, setSubmittedDivision] = useState<DivisionId | null>(null);
   const prevHasChampion = useRef(false);
 
   // Refs for auto-scroll
@@ -335,13 +477,20 @@ export function BracketView() {
         {showModal && (
           <ChampionModal
             onClose={() => setShowModal(false)}
-            onSubmitted={() => setShowSuccess(true)}
+            onSubmitted={(divisionId) => {
+              setSubmittedDivision(divisionId);
+              setShowSuccess(true);
+            }}
           />
         )}
       </AnimatePresence>
 
       {/* Success modal — shown after submission completes */}
-      <SubmitModal isOpen={showSuccess} onClose={() => setShowSuccess(false)} />
+      <SubmitModal
+        isOpen={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        divisionId={submittedDivision}
+      />
     </div>
   );
 }
