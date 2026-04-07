@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
@@ -26,9 +26,11 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const { division, nftCount, isLoading } = useUserDivision();
 
   // If wallet just connected, switch to connected phase
-  if (isConnected && phase === 'main') {
-    setPhase('connected');
-  }
+  useEffect(() => {
+    if (isConnected && phase === 'main') {
+      setPhase('connected');
+    }
+  }, [isConnected, phase]);
 
   function handleEmailSubmit() {
     const trimmed = email.trim().toLowerCase();

@@ -4,13 +4,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBracketStore } from '@/store/bracketStore';
 import { useIdentityStore } from '@/store/identityStore';
-import { useUserDivision } from '@/lib/web3/hooks/useUserDivision';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { getMatchesByRound } from '@/lib/tournament/r32Seeding';
 import { getOwnedTokenIds } from '@/lib/web3/alchemy';
-import { getDivisionForCount, getDivisionById } from '@/lib/divisions';
-import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { getFlagEmoji } from '@/lib/tournament/teams';
 import { BracketMatch } from './BracketMatch';
 import { Button } from '@/components/ui/Button';
@@ -121,10 +118,6 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
         setSubmitting(false);
         return;
       }
-
-      // Also save to local store for backwards compatibility
-      const { submitBracket } = useBracketStore.getState();
-      submitBracket();
 
       onClose();
       onSubmitted(data.divisionId as DivisionId);

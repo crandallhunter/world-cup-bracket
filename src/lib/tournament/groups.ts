@@ -22,18 +22,8 @@ export function getGroupRunnerUp(standing: GroupStanding): Team {
   return standing.rankings[1];
 }
 
-export function getGroupThird(standing: GroupStanding): Team {
-  return standing.rankings[2];
-}
-
-export function countCompletedGroups(
-  standings: Partial<Record<GroupLabel, GroupStanding>>
-): number {
-  return Object.values(standings).filter((s) => s?.isComplete).length;
-}
-
 export function allGroupsComplete(
   standings: Partial<Record<GroupLabel, GroupStanding>>
 ): boolean {
-  return countCompletedGroups(standings) === 12;
+  return Object.values(standings).filter((s) => s?.isComplete).length === 12;
 }

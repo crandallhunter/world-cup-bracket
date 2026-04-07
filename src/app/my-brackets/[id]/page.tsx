@@ -4,10 +4,23 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { loadSubmissions, getAnonId } from '@/lib/storage/brackets';
 import { getFlagEmoji } from '@/lib/tournament/teams';
+import { getDivisionById } from '@/lib/divisions';
+import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { Spinner } from '@/components/ui/Spinner';
-import type { BracketSubmission, KnockoutMatch, GroupStanding } from '@/types/tournament';
+import type { KnockoutMatch, GroupStanding, Team, FinalScore } from '@/types/tournament';
+import type { DivisionId } from '@/lib/divisions';
+
+interface SubmissionData {
+  id: string;
+  divisionId: DivisionId;
+  submittedAt: number;
+  groupStandings: GroupStanding[];
+  qualifiedThirdPlace: Team[];
+  knockoutPicks: KnockoutMatch[];
+  champion?: Team;
+  finalScore?: FinalScore;
+}
 
 const ROUND_LABELS: Record<string, string> = {
   R32: 'Round of 32',
@@ -130,7 +143,7 @@ function GroupsSection({ standings }: { standings: GroupStanding[] }) {
   );
 }
 
-function ThirdPlaceSection({ teams }: { teams: BracketSubmission['qualifiedThirdPlace'] }) {
+function ThirdPlaceSection({ teams }: { teams: Team[] }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {teams.map((t) => (
@@ -147,22 +160,23 @@ function ThirdPlaceSection({ teams }: { teams: BracketSubmission['qualifiedThird
 
 export default function BracketDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [bracket, setBracket] = useState<BracketSubmission | null>(null);
-  const [bracketIndex, setBracketIndex] = useState<number>(0);
+  const [bracket, setBracket] = useState<SubmissionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!mounted) return;
-    const anonId = getAnonId();
-    const all = loadSubmissions(anonId);
-    const idx = all.findIndex((b) => b.id === id);
-    if (idx >= 0) {
-      setBracket(all[idx]);
-      setBracketIndex(idx);
-    }
-    setLoading(false);
+    if (!mounted || !id) return;
+
+    fetch(`/api/submit?id=${encodeURIComponent(id)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.exists && data.submission) {
+          setBracket(data.submission);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [mounted, id]);
 
   if (!mounted || loading) return (
@@ -199,6 +213,7 @@ export default function BracketDetailPage() {
   });
 
   const finalMatch = bracket.knockoutPicks.find((m) => m.round === 'F');
+  const division = getDivisionById(bracket.divisionId);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -208,9 +223,10 @@ export default function BracketDetailPage() {
           ← My Brackets
         </Link>
         <div className="h-4 w-px bg-white/10" />
-        <div>
-          <span className="text-sm text-white/50">Bracket #{bracketIndex + 1}</span>
-          <span className="text-xs text-white/25 ml-2">{submittedDate}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-white/50">My Bracket</span>
+          {division && <DivisionBadge division={division} size="sm" />}
+          <span className="text-xs text-white/25 ml-1">{submittedDate}</span>
         </div>
       </div>
 

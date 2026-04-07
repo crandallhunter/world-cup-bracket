@@ -40,7 +40,6 @@ export function TopContenders() {
         {/* Top 3 — hero cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
           {mounted && top3.length > 0 ? top3.map((team, i) => {
-            const prob = odds[team.id]?.probability ?? 0;
             const pct = odds[team.id]?.displayPct ?? '—';
             const isFirst = i === 0;
 

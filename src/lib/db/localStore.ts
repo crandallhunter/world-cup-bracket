@@ -50,6 +50,11 @@ export const localStore: DataStore = {
     await writeStore(store);
   },
 
+  async getSubmissionById(id) {
+    const store = await readStore();
+    return store.submissions.find((s) => s.id === id) ?? null;
+  },
+
   async getSubmissionByIdentity(identifier) {
     const store = await readStore();
     const normalized = identifier.toLowerCase();

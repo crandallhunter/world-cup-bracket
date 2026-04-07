@@ -1,4 +1,4 @@
-import type { GroupLabel, GroupStanding, KnockoutMatch, R32Match, Team } from '@/types/tournament';
+import type { GroupLabel, GroupStanding, KnockoutMatch, Team } from '@/types/tournament';
 import { getGroupWinner, getGroupRunnerUp } from './groups';
 import type { ThirdPlaceTeam } from './thirdPlace';
 

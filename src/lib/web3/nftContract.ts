@@ -1,4 +1,4 @@
-// Placeholder NFT contract — replace with real address before launch
+// Meebits Futbol (Group 1) ERC-721A contract on Ethereum mainnet
 export const NFT_CONTRACT_ADDRESS =
   (process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS as `0x${string}`) ??
   '0x0000000000000000000000000000000000000000';

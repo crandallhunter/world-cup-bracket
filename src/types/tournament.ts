@@ -17,23 +17,6 @@ export interface GroupStanding {
   isComplete: boolean;
 }
 
-export interface ThirdPlaceFinisher extends Team {
-  sourceGroup: GroupLabel;
-}
-
-export interface R32Slot {
-  type: 'GROUP_WINNER' | 'GROUP_RUNNER_UP' | 'THIRD_PLACE';
-  group?: GroupLabel;
-  resolvedTeam?: Team;
-}
-
-export interface R32Match {
-  matchId: string;      // e.g. "R32_M1"
-  homeSlot: R32Slot;
-  awaySlot: R32Slot;
-  matchNumber: number;  // 1-16
-}
-
 export interface KnockoutMatch {
   matchId: string;
   round: KnockoutRound;
@@ -48,15 +31,4 @@ export interface FinalScore {
   away: number;
 }
 
-export interface BracketSubmission {
-  id: string;               // UUID
-  walletAddress: string;
-  submittedAt: number;      // Unix timestamp ms
-  groupStandings: GroupStanding[];
-  qualifiedThirdPlace: Team[]; // 8 teams user picks to advance
-  knockoutPicks: KnockoutMatch[];
-  champion?: Team;
-  finalScore?: FinalScore;  // Tiebreaker score prediction
-}
-
-export type BracketStep = 'GROUPS' | 'THIRD_PLACE' | 'KNOCKOUT' | 'REVIEW' | 'SUBMITTED';
+export type BracketStep = 'GROUPS' | 'THIRD_PLACE' | 'KNOCKOUT' | 'SUBMITTED';

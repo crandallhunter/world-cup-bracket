@@ -7,10 +7,6 @@ import { NFT_CONTRACT_ADDRESS } from './nftContract';
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ?? '';
 const ALCHEMY_BASE_URL = `https://eth-mainnet.g.alchemy.com/nft/v3/${ALCHEMY_API_KEY}`;
 
-export interface OwnedNFT {
-  tokenId: string;
-}
-
 /**
  * Fetch all token IDs of the Meebits Futbol collection held by a wallet.
  * Returns an array of token ID strings.

@@ -119,11 +119,25 @@ export async function POST(req: NextRequest) {
 /**
  * GET /api/submit?identifier=0x...
  * Check if a user has already submitted a bracket.
+ *
+ * GET /api/submit?id=<submissionId>
+ * Fetch a full submission by its ID (for the bracket detail page).
  */
 export async function GET(req: NextRequest) {
+  // ── Fetch full submission by ID ──
+  const submissionId = req.nextUrl.searchParams.get('id');
+  if (submissionId) {
+    const submission = await db.getSubmissionById(submissionId);
+    if (!submission) {
+      return NextResponse.json({ exists: false });
+    }
+    return NextResponse.json({ exists: true, submission });
+  }
+
+  // ── Check by identity ──
   const identifier = req.nextUrl.searchParams.get('identifier');
   if (!identifier) {
-    return NextResponse.json({ error: 'Missing identifier.' }, { status: 400 });
+    return NextResponse.json({ error: 'Missing identifier or id.' }, { status: 400 });
   }
 
   const submission = await db.getSubmissionByIdentity(identifier.toLowerCase());
@@ -133,6 +147,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     exists: true,
+    submissionId: submission.id,
     divisionId: submission.divisionId,
     submittedAt: submission.submittedAt,
     champion: submission.champion,

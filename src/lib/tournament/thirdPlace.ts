@@ -26,11 +26,3 @@ export function getAllThirdPlaceTeams(
   }));
 }
 
-// The 8 advancing 3rd-place groups determine which R32 slot they fill.
-// Returns sorted string key like "BCDEFGHI" used for scenario lookup.
-export function getThirdPlaceKey(advancingThirds: ThirdPlaceTeam[]): string {
-  return advancingThirds
-    .map((t) => t.sourceGroup)
-    .sort()
-    .join('');
-}

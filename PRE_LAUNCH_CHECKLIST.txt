@@ -1,0 +1,109 @@
+================================================================================
+  PRE-LAUNCH CHECKLIST — Meebits Futbol Bracket Challenge
+  Created: April 6, 2026
+  Tournament starts: June 11, 2026
+================================================================================
+
+CRITICAL (must do before launch)
+================================================================================
+
+[ ] Swap local JSON data store for production database
+    - Implement DataStore interface for your DB (Vercel Postgres, Supabase, etc.)
+    - Change import in src/lib/db/index.ts to use new implementation
+    - Local JSON store WILL NOT work on Vercel (read-only filesystem)
+
+[ ] Proxy Alchemy API key through server-side API route
+    - Currently exposed client-side via NEXT_PUBLIC_ALCHEMY_API_KEY
+    - Move token ID lookups to a server-side API route
+
+[ ] Set all environment variables in Vercel dashboard
+    - NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
+    - NEXT_PUBLIC_NFT_CONTRACT_ADDRESS
+    - NEXT_PUBLIC_ALCHEMY_API_KEY (or server-only once proxied)
+    - NEXT_PUBLIC_APP_URL
+
+[ ] Set prize pool amounts for each division
+    - Currently shows "TBD" in src/lib/divisions.ts
+    - Update the `prize` field for each division
+
+[ ] Verify 6 UEFA/Inter-Confederation playoff outcomes
+    - Playoff finals are March 31, 2026 — update placeholder teams in
+      src/lib/tournament/teams.ts once results are confirmed
+    - Update isPlayoffWinner flags and real team data
+
+[ ] Test full submission flow end-to-end
+    - Wallet connect -> NFT detection -> bracket building -> submission
+    - Email flow -> bracket building -> submission
+    - Verify token ID locking prevents double-submission
+    - Verify division assignment is correct
+
+[ ] Test on mobile devices
+    - Horizontal bracket scroll on small screens
+    - Welcome modal scroll on short viewports
+    - Group drag-reorder touch interactions
+
+
+IMPORTANT (should do before launch)
+================================================================================
+
+[ ] Add rate limiting on API routes
+    - /api/submit — prevent spam submissions
+    - /api/odds — prevent excessive Polymarket calls
+    - /api/divisions — low priority but good practice
+
+[ ] Add error boundaries around key components
+    - BracketView
+    - GroupStage
+    - ThirdPlaceSelector
+
+[ ] SEO meta tags on all pages
+    - Open Graph tags for social sharing
+    - Twitter card meta tags
+    - Page-specific titles and descriptions
+
+[ ] OG image generation for share cards
+    - Dynamic image with champion pick and division badge
+    - Used when sharing bracket on social media
+
+[ ] Set up custom domain
+    - Currently using meebits-futbol.vercel.app
+    - Configure DNS and Vercel domain settings
+
+[ ] Add analytics
+    - Track bracket submissions, wallet connections, page views
+    - Monitor Polymarket API health
+
+
+NICE TO HAVE (post-launch improvements)
+================================================================================
+
+[ ] Unit tests for tournament logic
+    - r32Seeding.ts (bracket generation + propagation)
+    - thirdPlace.ts (3rd-place selection)
+    - divisions.ts (division assignment)
+
+[ ] Leaderboard page
+    - Compare submitted brackets against real results
+    - Rankings within each division
+
+[ ] Live scores integration
+    - Once tournament starts (June 11), show real match results
+    - Track bracket accuracy in real-time
+
+[ ] Division upgrade flow
+    - Allow users to buy more NFTs and upgrade division before lock date
+    - UI for "Upgrade Division" button on my-brackets page
+
+[ ] Admin dashboard
+    - View all submissions
+    - Monitor division distribution
+    - Manual token unlocking if needed
+
+[ ] Export/backup submissions
+    - Database backup strategy
+    - Export to CSV for prize distribution
+
+
+================================================================================
+  End of Pre-Launch Checklist
+================================================================================

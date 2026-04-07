@@ -42,6 +42,8 @@ export interface DataStore {
   // ── Submissions ──
   /** Save a new submission */
   createSubmission(submission: Submission): Promise<void>;
+  /** Get submission by its unique ID */
+  getSubmissionById(id: string): Promise<Submission | null>;
   /** Get submission by identity (wallet address or email) */
   getSubmissionByIdentity(identifier: string): Promise<Submission | null>;
   /** Get all submissions (for admin/division counts) */
