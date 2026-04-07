@@ -228,7 +228,7 @@ export default function BracketPage() {
             <div className="text-center py-16 space-y-4">
               <div className="text-5xl">🎉</div>
               <h2 className="text-2xl font-bold">Bracket Submitted!</h2>
-              <p className="text-white/50">Check your submissions in My Brackets.</p>
+              <p className="text-white/50">Check your submission in My Bracket.</p>
               <Button variant="primary" onClick={() => { clearSeenIntros(); useBracketStore.getState().resetBracket(); navigateTo('GROUPS'); }}>
                 Build Another Bracket
               </Button>

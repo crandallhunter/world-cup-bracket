@@ -30,7 +30,7 @@ export function Header() {
             Divisions
           </Link>
           <Link href="/my-brackets" className="px-3 py-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors">
-            My Brackets
+            My Bracket
           </Link>
         </nav>
 

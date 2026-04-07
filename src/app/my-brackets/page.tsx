@@ -74,7 +74,7 @@ export default function MyBracketsPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">My Brackets</h1>
+          <h1 className="text-2xl font-bold">My Bracket</h1>
           <p className="text-text-secondary text-sm mt-1">
             {submission ? '1 bracket submitted' : 'No brackets submitted'}
           </p>

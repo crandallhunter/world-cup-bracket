@@ -46,7 +46,7 @@ function AccountDropdown({ address, ensName, onClose }: {
           className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors"
         >
           <span className="text-base">📋</span>
-          My Brackets
+          My Bracket
         </Link>
       </div>
 

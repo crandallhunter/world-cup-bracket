@@ -191,7 +191,7 @@ export default function BracketDetailPage() {
         <div className="text-4xl">🤷</div>
         <h2 className="text-xl font-bold">Bracket not found</h2>
         <Link href="/my-brackets" className="text-sm text-white/50 hover:text-white underline">
-          Back to My Brackets
+          Back to My Bracket
         </Link>
       </div>
     );
@@ -220,7 +220,7 @@ export default function BracketDetailPage() {
 
       <div className="flex items-center gap-4">
         <Link href="/my-brackets" className="text-white/40 hover:text-white/70 transition-colors text-sm flex items-center gap-1">
-          ← My Brackets
+          ← My Bracket
         </Link>
         <div className="h-4 w-px bg-white/10" />
         <div className="flex items-center gap-2">
