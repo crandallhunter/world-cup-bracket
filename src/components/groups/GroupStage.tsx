@@ -50,17 +50,15 @@ export function GroupStage() {
         ))}
       </motion.div>
 
-      {!allDone && (
-        <motion.div
-          className="flex justify-center pt-2"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Button variant="primary" size="lg" onClick={handleConfirmAll}>
-            Confirm All Groups & Continue →
-          </Button>
-        </motion.div>
-      )}
+      <motion.div
+        className="flex justify-center pt-2"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Button variant="primary" size="lg" onClick={handleConfirmAll}>
+          {allDone ? 'Continue to 3rd Place →' : 'Confirm All Groups & Continue →'}
+        </Button>
+      </motion.div>
     </div>
   );
 }

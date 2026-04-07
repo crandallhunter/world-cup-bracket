@@ -240,12 +240,21 @@ export function propagateWinner(
   });
 }
 
+// Visual display order for R32 matches — grouped so each pair feeds into
+// the adjacent R16 match (e.g. R32 positions 3,6 → R16_M1; 1,4 → R16_M2; etc.)
+const R32_DISPLAY_ORDER = [3, 6, 1, 4, 12, 8, 10, 9, 2, 5, 7, 16, 11, 14, 13, 15];
+
 // Get all matches for a specific round
 export function getMatchesByRound(
   bracket: KnockoutMatch[],
   round: KnockoutMatch['round']
 ): KnockoutMatch[] {
-  return bracket
-    .filter((m) => m.round === round)
-    .sort((a, b) => a.position - b.position);
+  const matches = bracket.filter((m) => m.round === round);
+  if (round === 'R32') {
+    // Sort R32 by visual display order so they align with R16 matches
+    return matches.sort((a, b) => {
+      return R32_DISPLAY_ORDER.indexOf(a.position) - R32_DISPLAY_ORDER.indexOf(b.position);
+    });
+  }
+  return matches.sort((a, b) => a.position - b.position);
 }
