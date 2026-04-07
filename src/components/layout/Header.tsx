@@ -36,7 +36,7 @@ export function Header() {
 
         <div className="flex items-center gap-2 shrink-0">
           {isConnected && division && (
-            <DivisionBadge division={division} size="sm" />
+            <DivisionBadge division={division} size="sm" showLabel={false} />
           )}
           <WalletButton />
         </div>
