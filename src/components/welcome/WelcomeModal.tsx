@@ -305,30 +305,35 @@ function ConnectedPhase({
           {isNFTHolder ? division?.icon : '🌍'}
         </motion.div>
 
-        <h2 className="text-lg font-bold text-white mb-2">
-          {isNFTHolder ? 'Welcome, Holder!' : 'Wallet Connected!'}
-        </h2>
-
-        {division && (
-          <div className="flex justify-center mb-3">
-            <DivisionBadge division={division} size="lg" />
-          </div>
-        )}
-
         {isNFTHolder ? (
-          <div className="space-y-1">
-            <p className="text-sm text-white/50">
-              You hold <span className="text-white font-semibold">{nftCount}</span> Meebits Futbol
-              {nftCount === 1 ? ' NFT' : ' NFTs'}
+          <>
+            <h2 className="text-lg font-bold text-white mb-1">
+              Welcome to the{' '}
+              <span className={`bg-gradient-to-r ${division?.color} bg-clip-text text-transparent`}>
+                {division?.name}
+              </span>{' '}
+              Division
+            </h2>
+            <p className="text-sm text-white/40 mb-3">
+              {nftCount} Meebits Futbol NFT{nftCount !== 1 ? 's' : ''} detected
             </p>
-            <p className="text-sm text-white/40">
-              You're competing in the <span className={`font-semibold bg-gradient-to-r ${division?.color} bg-clip-text text-transparent`}>{division?.name}</span> division
-            </p>
-          </div>
+            {division && (
+              <div className="flex justify-center">
+                <DivisionBadge division={division} size="lg" />
+              </div>
+            )}
+          </>
         ) : (
-          <p className="text-sm text-white/40">
-            No Meebits Futbol NFTs found — you'll compete in the Free division. You can still build and submit your bracket!
-          </p>
+          <>
+            <h2 className="text-lg font-bold text-white mb-1">
+              Welcome to the{' '}
+              <span className="text-white/60">Free</span>{' '}
+              Division
+            </h2>
+            <p className="text-sm text-white/40">
+              No Meebits Futbol NFTs found — you can still build and submit your bracket in the Free division!
+            </p>
+          </>
         )}
       </div>
 
