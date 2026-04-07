@@ -191,29 +191,57 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
                   </span>
                 </div>
               </div>
-              <div className="flex items-end justify-center gap-4">
+              <div className="flex items-end justify-center gap-6">
                 <div className="flex flex-col items-center gap-1.5">
                   <span className="text-xl">{getFlagEmoji(homeTeam.flagCode)}</span>
                   <span className="text-[10px] text-white/30 max-w-[72px] text-center truncate">
                     {homeTeam.isPlayoffWinner ? homeTeam.placeholderLabel : homeTeam.name}
                   </span>
-                  <input
-                    type="number" min={0} max={20} value={home}
-                    onChange={(e) => setHome(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-14 h-14 text-center text-2xl font-black bg-white/6 border border-white/12 rounded-xl text-white focus:outline-none focus:border-white/35 transition-colors"
-                  />
+                  <div className="flex flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() => setHome(Math.min(20, home + 1))}
+                      className="w-14 h-7 flex items-center justify-center rounded-t-xl border border-b-0 border-white/12 bg-white/[0.04] text-white/30 hover:bg-white/[0.1] hover:text-white/60 transition-colors"
+                    >
+                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                    <div className="w-14 h-12 flex items-center justify-center bg-white/6 border border-white/12 text-2xl font-black text-white">
+                      {home}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setHome(Math.max(0, home - 1))}
+                      className="w-14 h-7 flex items-center justify-center rounded-b-xl border border-t-0 border-white/12 bg-white/[0.04] text-white/30 hover:bg-white/[0.1] hover:text-white/60 transition-colors"
+                    >
+                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <span className="text-white/20 text-xl mb-3.5">—</span>
+                <span className="text-white/20 text-xl mb-5">—</span>
                 <div className="flex flex-col items-center gap-1.5">
                   <span className="text-xl">{getFlagEmoji(awayTeam.flagCode)}</span>
                   <span className="text-[10px] text-white/30 max-w-[72px] text-center truncate">
                     {awayTeam.isPlayoffWinner ? awayTeam.placeholderLabel : awayTeam.name}
                   </span>
-                  <input
-                    type="number" min={0} max={20} value={away}
-                    onChange={(e) => setAway(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-14 h-14 text-center text-2xl font-black bg-white/6 border border-white/12 rounded-xl text-white focus:outline-none focus:border-white/35 transition-colors"
-                  />
+                  <div className="flex flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() => setAway(Math.min(20, away + 1))}
+                      className="w-14 h-7 flex items-center justify-center rounded-t-xl border border-b-0 border-white/12 bg-white/[0.04] text-white/30 hover:bg-white/[0.1] hover:text-white/60 transition-colors"
+                    >
+                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                    <div className="w-14 h-12 flex items-center justify-center bg-white/6 border border-white/12 text-2xl font-black text-white">
+                      {away}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAway(Math.max(0, away - 1))}
+                      className="w-14 h-7 flex items-center justify-center rounded-b-xl border border-t-0 border-white/12 bg-white/[0.04] text-white/30 hover:bg-white/[0.1] hover:text-white/60 transition-colors"
+                    >
+                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
