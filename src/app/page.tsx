@@ -31,8 +31,8 @@ export default function HomePage() {
 
           {/* Headline */}
           <h1 className="text-[clamp(3.5rem,8.5vw,9rem)] font-black leading-[0.88] tracking-[-0.03em] uppercase mb-10">
-            Pick every<br />
-            <span className="text-[#6366f1]">match.</span><br />
+            <span className="text-[#6366f1]">Pick every<br />
+            match.</span><br />
             Crown your<br />
             champion.<br />
             <span className="text-[#c9a84c]">Win big.</span>
