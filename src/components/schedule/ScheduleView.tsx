@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useBracketStore } from '@/store/bracketStore';
 import { SCHEDULE } from '@/data/schedule';
 import type { ScheduleRound } from '@/data/schedule';
 import type { GroupLabel } from '@/types/tournament';
+import type { FixtureResult } from '@/lib/db/types';
 import { cn } from '@/lib/utils/cn';
 import { MatchCard } from './MatchCard';
 
@@ -34,8 +35,19 @@ function matchCountForRound(round: ScheduleRound): number {
 export function ScheduleView() {
   const [activeStage, setActiveStage] = useState<ScheduleRound>('GS');
   const [activeGroup, setActiveGroup] = useState<GroupLabel>('A');
+  const [fixtureResults, setFixtureResults] = useState<FixtureResult[]>([]);
 
   const { groupStandings, knockoutBracket } = useBracketStore();
+
+  // Fetch real fixture results
+  useEffect(() => {
+    fetch('/api/schedule/results')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.fixtures) setFixtureResults(data.fixtures);
+      })
+      .catch(() => {});
+  }, []);
 
   // Build userGroupRankings for groups that are complete
   const userGroupRankings = (() => {
@@ -130,6 +142,8 @@ export function ScheduleView() {
                 match={match}
                 userGroupRankings={Object.keys(userGroupRankings).length > 0 ? userGroupRankings : undefined}
                 bracketMatch={bracketMatch}
+                fixtureResults={fixtureResults}
+                allScheduleMatches={SCHEDULE}
               />
             );
           })
