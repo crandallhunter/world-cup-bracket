@@ -18,7 +18,7 @@ interface ServerSubmission {
   champion?: { name: string; flagCode: string };
 }
 
-export default function MyBracketsPage() {
+export default function MyBracketPage() {
   const [mounted, setMounted] = useState(false);
   const [submission, setSubmission] = useState<ServerSubmission | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,38 +72,15 @@ export default function MyBracketsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">My Bracket</h1>
-          <p className="text-text-secondary text-sm mt-1">
-            {submission ? '1 bracket submitted' : 'No brackets submitted'}
-          </p>
-        </div>
-        {!submission && (
-          <Link
-            href="/bracket"
-            className="px-4 py-2 rounded-lg bg-white hover:bg-white/85 text-black text-sm font-medium transition-colors"
-          >
-            + Build Bracket
-          </Link>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold">My Bracket</h1>
       </div>
-
-      {/* Current division */}
-      {hasIdentity && division && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/8 bg-white/[0.02]">
-          <DivisionBadge division={division} size="md" />
-          <span className="text-sm text-white/40">
-            Your current division based on NFT holdings
-          </span>
-        </div>
-      )}
 
       {!hasIdentity ? (
         <div className="flex flex-col items-center gap-6 py-16 text-center border border-white/8 rounded-2xl bg-white/[0.02]">
           <div className="text-4xl">🔗</div>
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Connect to view your brackets</h3>
+            <h3 className="text-lg font-semibold">Connect to view your bracket</h3>
             <p className="text-text-secondary text-sm max-w-xs">
               Connect your wallet or go to the bracket builder to set up your identity.
             </p>
@@ -117,11 +94,24 @@ export default function MyBracketsPage() {
         </div>
       ) : !submission ? (
         <div className="flex flex-col items-center gap-6 py-16 text-center border border-white/8 rounded-2xl bg-white/[0.02]">
-          <div className="text-4xl">📋</div>
+          <div className="text-4xl">⚽</div>
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold">No brackets yet</h3>
-            <p className="text-text-secondary text-sm">Build your first bracket to get started.</p>
+            <h3 className="text-lg font-semibold">You haven't submitted a bracket yet</h3>
+            <p className="text-text-secondary text-sm max-w-xs">
+              Build your bracket, pick your champion, and compete in the{' '}
+              {division ? (
+                <span className={`font-semibold bg-gradient-to-r ${division.color} bg-clip-text text-transparent`}>
+                  {division.name}
+                </span>
+              ) : (
+                'Free'
+              )}{' '}
+              division.
+            </p>
           </div>
+          {division && (
+            <DivisionBadge division={division} size="md" />
+          )}
           <Link
             href="/bracket"
             className="px-6 py-2.5 rounded-lg bg-white hover:bg-white/85 text-black font-medium transition-colors"
@@ -131,39 +121,59 @@ export default function MyBracketsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center gap-4 p-4 rounded-xl border border-white/8 bg-white/[0.02]">
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-sm font-bold text-white/40 shrink-0">
-              1
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">My Bracket</span>
+          {/* Submitted bracket card */}
+          <div className="rounded-2xl border border-white/8 bg-white/[0.02] overflow-hidden">
+            {/* Champion hero */}
+            {submission.champion && (
+              <div className="relative p-6 text-center border-b border-white/6">
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ background: 'radial-gradient(ellipse at 50% -10%, rgba(201,168,76,0.1) 0%, transparent 65%)' }}
+                />
+                <p className="relative text-[9px] font-semibold text-[#c9a84c]/50 uppercase tracking-[0.3em] mb-2">
+                  Your Champion Pick
+                </p>
+                <div className="relative text-5xl leading-none mb-2">
+                  {getFlagEmoji(submission.champion.flagCode)}
+                </div>
+                <h2 className="relative text-xl font-black text-white">
+                  {submission.champion.name}
+                </h2>
+              </div>
+            )}
+
+            {/* Details */}
+            <div className="px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
                 {submission.divisionId && (
                   <DivisionBadge
                     division={getDivisionById(submission.divisionId)}
-                    size="sm"
+                    size="md"
                   />
                 )}
-              </div>
-              <div className="text-xs text-white/30">
-                {new Date(submission.submittedAt).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </div>
-            </div>
-            {submission.champion && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#c9a84c]/20 bg-[#c9a84c]/5">
-                <span className="text-lg">{getFlagEmoji(submission.champion.flagCode)}</span>
-                <div>
-                  <div className="text-xs text-[#c9a84c] font-medium">Champion</div>
-                  <div className="text-sm font-semibold text-white">{submission.champion.name}</div>
+                <div className="text-xs text-white/30">
+                  Submitted{' '}
+                  {new Date(submission.submittedAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
                 </div>
               </div>
-            )}
+              <Link
+                href={`/my-brackets/${submission.id}`}
+                className="text-xs text-white/40 hover:text-white/70 transition-colors"
+              >
+                View Full Bracket →
+              </Link>
+            </div>
+          </div>
+
+          {/* Bracket submitted confirmation */}
+          <div className="text-center py-3">
+            <p className="text-xs text-white/25">
+              Your bracket is locked in. Good luck! 🍀
+            </p>
           </div>
         </div>
       )}
