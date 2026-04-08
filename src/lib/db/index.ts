@@ -8,4 +8,4 @@
 export { localStore as db } from './localStore';
 
 // Re-export types for convenience
-export type { DataStore, Submission, UsedToken, IdentityType } from './types';
+export type { DataStore, Submission, UsedToken, IdentityType, SubmissionScore } from './types';

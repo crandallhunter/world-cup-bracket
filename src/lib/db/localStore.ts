@@ -7,7 +7,8 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import type { DataStore, Submission, UsedToken } from './types';
+import type { DataStore, Submission, UsedToken, SubmissionScore } from './types';
+import type { RealResults } from '@/lib/scoring';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const STORE_PATH = path.join(DATA_DIR, 'store.json');
@@ -15,6 +16,8 @@ const STORE_PATH = path.join(DATA_DIR, 'store.json');
 interface StoreData {
   submissions: Submission[];
   usedTokens: UsedToken[];
+  results?: RealResults;
+  scores?: SubmissionScore[];
 }
 
 const EMPTY_STORE: StoreData = { submissions: [], usedTokens: [] };
@@ -99,5 +102,34 @@ export const localStore: DataStore = {
       (t) => t.submissionId !== submissionId
     );
     await writeStore(store);
+  },
+
+  async saveResults(results) {
+    const store = await readStore();
+    store.results = results;
+    await writeStore(store);
+  },
+
+  async getResults() {
+    const store = await readStore();
+    return store.results ?? null;
+  },
+
+  async saveScores(scores) {
+    const store = await readStore();
+    store.scores = scores;
+    await writeStore(store);
+  },
+
+  async getScores() {
+    const store = await readStore();
+    return (store.scores ?? []).sort((a, b) => {
+      if (b.score.total !== a.score.total) return b.score.total - a.score.total;
+      // Tiebreaker: lower is better
+      if (a.tiebreaker !== null && b.tiebreaker !== null) return a.tiebreaker - b.tiebreaker;
+      if (a.tiebreaker !== null) return -1;
+      if (b.tiebreaker !== null) return 1;
+      return 0;
+    });
   },
 };

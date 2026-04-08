@@ -5,6 +5,7 @@
 import type { DivisionId } from '@/lib/divisions';
 import type { GroupStanding, KnockoutMatch, Team, FinalScore } from '@/types/tournament';
 import type { ThirdPlaceTeam } from '@/lib/tournament/thirdPlace';
+import type { RealResults, ScoreBreakdown } from '@/lib/scoring';
 
 export type IdentityType = 'wallet' | 'email';
 
@@ -34,6 +35,17 @@ export interface UsedToken {
   lockedAt: number; // Unix timestamp ms
 }
 
+/** Cached score for a submission */
+export interface SubmissionScore {
+  submissionId: string;
+  identifier: string;
+  divisionId: DivisionId;
+  score: ScoreBreakdown;
+  tiebreaker: number | null;
+  champion?: Team;
+  updatedAt: number;
+}
+
 /**
  * Data access interface — implement this for any storage backend.
  * All methods are async to support both local and remote backends.
@@ -60,4 +72,14 @@ export interface DataStore {
   filterUsedTokens(tokenIds: string[]): Promise<string[]>;
   /** Unlock tokens for a submission (for re-submission) */
   unlockTokensForSubmission(submissionId: string): Promise<void>;
+
+  // ── Tournament results & scores ──
+  /** Save or update real tournament results */
+  saveResults(results: RealResults): Promise<void>;
+  /** Get the current real tournament results */
+  getResults(): Promise<RealResults | null>;
+  /** Save all submission scores (replaces previous scores) */
+  saveScores(scores: SubmissionScore[]): Promise<void>;
+  /** Get all submission scores, sorted by total desc */
+  getScores(): Promise<SubmissionScore[]>;
 }
