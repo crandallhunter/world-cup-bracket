@@ -21,14 +21,6 @@ export default function HomePage() {
 
         <div className="relative max-w-7xl mx-auto w-full">
 
-          {/* Promo pill */}
-          <div className="inline-flex items-center gap-2.5 mb-8 px-4 py-2 rounded-full border border-white/10 bg-white/[0.04]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#6366f1] animate-pulse" />
-            <span className="text-white/50 text-xs font-medium tracking-[0.15em] uppercase">
-              2026 FIFA World Cup · Live Polymarket Odds · Free to Play
-            </span>
-          </div>
-
           {/* Headline */}
           <h1 className="text-[clamp(3.5rem,8.5vw,9rem)] font-black leading-[0.88] tracking-[-0.03em] uppercase mb-10">
             <span className="text-[#6366f1]">Pick every<br />
