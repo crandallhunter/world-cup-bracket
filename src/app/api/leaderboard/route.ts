@@ -7,7 +7,7 @@ import type { DivisionId } from '@/lib/divisions';
  * Returns scored submissions for the leaderboard.
  *
  * Query params:
- *   ?division=diamond  — filter by division (optional)
+ *   ?division=gold  — filter by division (optional)
  */
 export async function GET(req: NextRequest) {
   try {

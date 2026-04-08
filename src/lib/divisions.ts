@@ -17,28 +17,10 @@ export interface Division {
   prize: string;
 }
 
-export type DivisionId = 'diamond' | 'platinum' | 'gold' | 'silver' | 'bronze' | 'open';
+export type DivisionId = 'gold' | 'silver' | 'bronze' | 'open';
 
 // Ordered highest → lowest so getDivision() returns the best eligible tier
 export const DIVISIONS: Division[] = [
-  {
-    id: 'diamond',
-    name: 'Diamond',
-    minNFTs: 10,
-    color: 'from-purple-400 to-indigo-400',
-    bgGradient: 'from-purple-500/20 to-indigo-500/20',
-    icon: '💎',
-    prize: 'TBD',
-  },
-  {
-    id: 'platinum',
-    name: 'Platinum',
-    minNFTs: 7,
-    color: 'from-cyan-300 to-blue-300',
-    bgGradient: 'from-cyan-500/20 to-blue-500/20',
-    icon: '⭐',
-    prize: 'TBD',
-  },
   {
     id: 'gold',
     name: 'Gold',

@@ -13,8 +13,6 @@ export async function GET() {
 
     // Count submissions per division
     const counts: Record<DivisionId, number> = {
-      diamond: 0,
-      platinum: 0,
       gold: 0,
       silver: 0,
       bronze: 0,

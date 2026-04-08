@@ -26,7 +26,7 @@ const cardVariants = {
 
 export default function DivisionsPage() {
   const [counts, setCounts] = useState<Record<DivisionId, number>>({
-    diamond: 0, platinum: 0, gold: 0, silver: 0, bronze: 0, open: 0,
+    gold: 0, silver: 0, bronze: 0, open: 0,
   });
   const [totalParticipants, setTotalParticipants] = useState(0);
   const { division: userDivision, nftCount, isConnected } = useUserDivision();
