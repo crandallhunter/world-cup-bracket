@@ -1,7 +1,7 @@
 // Maps Polymarket country name strings (from "Will [X] win..." questions)
 // to our canonical Team.id values.
 
-export const POLYMARKET_NAME_MAP: Record<string, string> = {
+const POLYMARKET_NAME_MAP: Record<string, string> = {
   'Argentina': 'ARG',
   'Australia': 'AUS',
   'Austria': 'AUT',
@@ -63,6 +63,11 @@ export const POLYMARKET_NAME_MAP: Record<string, string> = {
   'Democratic Republic of Congo': 'COD',
 };
 
+/**
+ * Resolve a Polymarket outcome string (country name) to our canonical
+ * Team.id. Returns null if the name has no mapping — callers should
+ * treat that as "unknown country, ignore this market".
+ */
 export function normalizeOutcomeToTeamId(name: string): string | null {
   const trimmed = name.trim();
   return POLYMARKET_NAME_MAP[trimmed] ?? null;

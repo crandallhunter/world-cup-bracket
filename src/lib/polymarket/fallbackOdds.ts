@@ -29,5 +29,3 @@ export const FALLBACK_ODDS: OddsMap = {
   PAR: { teamId: 'PAR', probability: 0.005, displayPct: '1%' },
   CIV: { teamId: 'CIV', probability: 0.005, displayPct: '1%' },
 };
-
-export const FALLBACK_IS_LIVE = false;

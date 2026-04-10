@@ -108,10 +108,6 @@ export const GROUPS: Record<GroupLabel, Team[]> = {
 
 export const GROUP_LABELS: GroupLabel[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
-export function getTeamById(id: string): Team | undefined {
-  return ALL_TEAMS.find((t) => t.id === id);
-}
-
 /**
  * Convert an ISO alpha-2 flag code into a Unicode flag emoji.
  *

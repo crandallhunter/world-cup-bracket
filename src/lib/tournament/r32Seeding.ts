@@ -37,7 +37,14 @@ const THIRD_PLACE_ELIGIBLE: Record<string, GroupLabel[]> = {
 
 const VARIABLE_MATCH_IDS = ['M3', 'M6', 'M7', 'M9', 'M10', 'M13', 'M15', 'M16'];
 
-// Greedy assignment: assign each advancing 3rd-place team to the first eligible slot
+/**
+ * Map the 8 advancing 3rd-place teams to the 8 variable R32 slots.
+ * Greedy pass first — each team is placed in the first slot whose
+ * source-group eligibility matches. If constraints leave any slot
+ * empty (e.g. user's 3rd-place picks don't cover every eligibility
+ * set), the leftover teams fill remaining slots in order so the
+ * bracket is always complete.
+ */
 function assignThirdPlaceTeams(
   advancingThirds: ThirdPlaceTeam[]
 ): Record<string, ThirdPlaceTeam> {

@@ -159,7 +159,7 @@ src/
 │
 ├── lib/
 │   ├── tournament/
-│   │   ├── teams.ts                48 teams, 12 groups, getTeamById()
+│   │   ├── teams.ts                48 teams, 12 groups, GROUPS map
 │   │   ├── r32Seeding.ts           R32 bracket structure + FIFA R16 pairings
 │   │   ├── groups.ts               Group standing helpers
 │   │   └── thirdPlace.ts           3rd-place eligibility logic
