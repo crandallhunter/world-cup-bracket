@@ -112,6 +112,17 @@ export function getTeamById(id: string): Team | undefined {
   return ALL_TEAMS.find((t) => t.id === id);
 }
 
+/**
+ * Convert an ISO alpha-2 flag code into a Unicode flag emoji.
+ *
+ * NOTE: Do NOT use this for in-app rendering — headless / Windows Chromium
+ * browsers do not ship country flag glyphs, and the user will see letter
+ * pairs (e.g. "US") instead of flags. Use the <Flag /> component in
+ * components/ui/Flag.tsx for in-app flags (it uses SVGs from flagcdn.com).
+ *
+ * This helper exists only for the ShareCard tweet text, where Twitter
+ * re-renders emoji codepoints as its own Twemoji images.
+ */
 export function getFlagEmoji(flagCode: string): string {
   if (flagCode === 'eu' || flagCode === 'un') return '🏴';
   if (flagCode === 'gb-sct') return '🏴󠁧󠁢󠁳󠁣󠁴󠁿';

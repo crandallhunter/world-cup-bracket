@@ -161,7 +161,7 @@ src/
 │
 ├── lib/
 │   ├── tournament/
-│   │   ├── teams.ts                48 teams, 12 groups, getFlagEmoji()
+│   │   ├── teams.ts                48 teams, 12 groups, getTeamById()
 │   │   ├── r32Seeding.ts           R32 bracket structure + FIFA R16 pairings
 │   │   ├── groups.ts               Group standing helpers
 │   │   └── thirdPlace.ts           3rd-place eligibility logic
@@ -311,11 +311,14 @@ NEXT.JS 16 DIFFERENCES
   - Turbopack is the default bundler
   - Check node_modules/next/dist/docs/ for current API docs
 
-FLAG EMOJIS
-  Flags use Unicode regional indicator symbols via getFlagEmoji().
-  Special cases: England (gb-eng) and Scotland (gb-sct) use explicit
-  emoji strings. Windows Chrome does NOT render country flag emojis
-  natively (shows letter pairs) — this is a browser limitation.
+FLAGS
+  All country flags render via the <Flag> component at
+  src/components/ui/Flag.tsx, which uses SVG images from flagcdn.com
+  (free, no API key, ISO 3166-1 alpha-2 codes). This works on every
+  browser regardless of OS emoji support (Windows Chrome does NOT
+  render country flag emojis natively). The legacy getFlagEmoji()
+  helper in teams.ts is kept for ONE purpose only: building the tweet
+  text in ShareCard, since Twitter renders flag codepoints via Twemoji.
 
 POLYMARKET EVENT ID
   The Gamma API event ID is 30615. If Polymarket restructures their

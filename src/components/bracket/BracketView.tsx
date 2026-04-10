@@ -8,7 +8,7 @@ import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { getMatchesByRound } from '@/lib/tournament/r32Seeding';
 import { getOwnedTokenIds } from '@/lib/web3/alchemy';
-import { getFlagEmoji } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 import { BracketMatch } from './BracketMatch';
 import { Button } from '@/components/ui/Button';
 import { SubmitModal } from '@/components/submission/SubmitModal';
@@ -159,9 +159,9 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
             initial={{ scale: 0.3, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring' as const, stiffness: 260, damping: 18, delay: 0.08 }}
-            className="relative text-[96px] leading-none"
+            className="relative flex justify-center"
           >
-            {getFlagEmoji(champion.flagCode)}
+            <Flag flagCode={champion.flagCode} alt={champion.name} size={80} className="rounded-md" />
           </motion.div>
 
           <motion.h2
@@ -193,7 +193,7 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
               </div>
               <div className="flex items-end justify-center gap-6">
                 <div className="flex flex-col items-center gap-1.5">
-                  <span className="text-xl">{getFlagEmoji(homeTeam.flagCode)}</span>
+                  <Flag flagCode={homeTeam.flagCode} alt={homeTeam.name} size={24} />
                   <span className="text-[10px] text-white/30 max-w-[72px] text-center truncate">
                     {homeTeam.isPlayoffWinner ? homeTeam.placeholderLabel : homeTeam.name}
                   </span>
@@ -219,7 +219,7 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
                 </div>
                 <span className="text-white/20 text-xl mb-5">—</span>
                 <div className="flex flex-col items-center gap-1.5">
-                  <span className="text-xl">{getFlagEmoji(awayTeam.flagCode)}</span>
+                  <Flag flagCode={awayTeam.flagCode} alt={awayTeam.name} size={24} />
                   <span className="text-[10px] text-white/30 max-w-[72px] text-center truncate">
                     {awayTeam.isPlayoffWinner ? awayTeam.placeholderLabel : awayTeam.name}
                   </span>
@@ -340,7 +340,7 @@ function ChampionBadge({ onReopen }: { onReopen: () => void }) {
       onClick={onReopen}
       title="Click to review & submit"
     >
-      <span className="text-lg leading-none">{getFlagEmoji(champion.flagCode)}</span>
+      <Flag flagCode={champion.flagCode} alt={champion.name} size={20} />
       <div className="min-w-0">
         <p className="text-[9px] font-semibold text-[#c9a84c]/60 uppercase tracking-widest leading-none mb-0.5">
           Your Champion

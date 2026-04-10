@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useOddsContext } from '@/context/OddsContext';
-import { GROUPS, GROUP_LABELS, getFlagEmoji } from '@/lib/tournament/teams';
+import { GROUPS, GROUP_LABELS } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 
 export function GroupOddsGrid() {
   const [mounted, setMounted] = useState(false);
@@ -55,9 +56,7 @@ export function GroupOddsGrid() {
                         className="flex items-center gap-2.5 px-2 py-2 rounded-lg transition-colors hover:bg-white/[0.03]"
                       >
                         {/* Flag */}
-                        <span className="text-lg leading-none w-6 text-center shrink-0">
-                          {getFlagEmoji(team.flagCode)}
-                        </span>
+                        <Flag flagCode={team.flagCode} alt={team.name} size={20} />
 
                         {/* Name + bar */}
                         <div className="flex-1 min-w-0">

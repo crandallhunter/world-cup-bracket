@@ -1,29 +1,11 @@
-import type { GroupLabel, GroupStanding, Team } from '@/types/tournament';
-import { GROUPS, GROUP_LABELS } from './teams';
+import type { GroupStanding, Team } from '@/types/tournament';
 
-export function getDefaultStandings(): Record<GroupLabel, GroupStanding> {
-  const standings = {} as Record<GroupLabel, GroupStanding>;
-  for (const label of GROUP_LABELS) {
-    const teams = GROUPS[label];
-    standings[label] = {
-      group: label,
-      rankings: [teams[0], teams[1], teams[2], teams[3]] as [Team, Team, Team, Team],
-      isComplete: false,
-    };
-  }
-  return standings;
-}
-
+/** 1st-place team in a completed group standing. */
 export function getGroupWinner(standing: GroupStanding): Team {
   return standing.rankings[0];
 }
 
+/** 2nd-place team in a completed group standing. */
 export function getGroupRunnerUp(standing: GroupStanding): Team {
   return standing.rankings[1];
-}
-
-export function allGroupsComplete(
-  standings: Partial<Record<GroupLabel, GroupStanding>>
-): boolean {
-  return Object.values(standings).filter((s) => s?.isComplete).length === 12;
 }

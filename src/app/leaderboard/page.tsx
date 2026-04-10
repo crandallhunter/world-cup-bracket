@@ -7,7 +7,7 @@ import { useIdentityStore } from '@/store/identityStore';
 import { DIVISIONS, getDivisionById } from '@/lib/divisions';
 import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { POINTS_PER_ROUND, MAX_POINTS } from '@/lib/scoring';
-import { getFlagEmoji } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils/cn';
 import type { DivisionId } from '@/lib/divisions';
@@ -178,7 +178,7 @@ export default function LeaderboardPage() {
                   <div className="flex items-center gap-1.5">
                     {entry.champion && (
                       <>
-                        <span className="text-sm">{getFlagEmoji(entry.champion.flagCode)}</span>
+                        <Flag flagCode={entry.champion.flagCode} alt={entry.champion.name} size={20} />
                         <span className="text-xs text-white/40 hidden sm:block">{entry.champion.name}</span>
                       </>
                     )}
@@ -235,8 +235,8 @@ export default function LeaderboardPage() {
                       <span className="text-[9px] text-[#6366f1] font-semibold uppercase tracking-wide">You</span>
                     )}
                     {entry.champion && (
-                      <span className="text-xs ml-auto hidden sm:block" title={entry.champion.name}>
-                        {getFlagEmoji(entry.champion.flagCode)}
+                      <span className="ml-auto hidden sm:block" title={entry.champion.name}>
+                        <Flag flagCode={entry.champion.flagCode} alt={entry.champion.name} size={16} />
                       </span>
                     )}
                   </div>

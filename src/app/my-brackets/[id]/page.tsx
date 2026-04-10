@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { getFlagEmoji } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 import { getDivisionById } from '@/lib/divisions';
 import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { Spinner } from '@/components/ui/Spinner';
@@ -47,7 +47,7 @@ function ReadOnlyMatch({ match }: { match: KnockoutMatch }) {
     const name = team.isPlayoffWinner ? team.placeholderLabel : team.name;
     return (
       <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded ${isWinner ? 'bg-white/8' : ''}`}>
-        <span className="text-sm w-5 text-center">{getFlagEmoji(team.flagCode)}</span>
+        <Flag flagCode={team.flagCode} alt={team.name} size={16} />
         <span className={`text-xs truncate max-w-[80px] ${isWinner ? 'text-white font-semibold' : 'text-white/45'}`}>
           {name}
         </span>
@@ -110,7 +110,7 @@ function GroupsSection({ standings }: { standings: GroupStanding[] }) {
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   {gs.rankings.slice(0, 2).map((t) => (
                     <div key={t.id} className="flex items-center gap-1 bg-white/6 rounded px-1.5 py-0.5">
-                      <span className="text-xs">{getFlagEmoji(t.flagCode)}</span>
+                      <Flag flagCode={t.flagCode} alt={t.name} size={16} />
                       <span className="text-xs text-white/60 hidden sm:block">{t.name}</span>
                     </div>
                   ))}
@@ -125,7 +125,7 @@ function GroupsSection({ standings }: { standings: GroupStanding[] }) {
                       <span className={`text-xs font-bold w-4 ${pos < 2 ? 'text-white/60' : 'text-white/20'}`}>
                         {pos + 1}
                       </span>
-                      <span className="text-base">{getFlagEmoji(t.flagCode)}</span>
+                      <Flag flagCode={t.flagCode} alt={t.name} size={20} />
                       <span className={`text-sm ${pos < 2 ? 'text-white/80' : 'text-white/30'}`}>
                         {t.isPlayoffWinner ? t.placeholderLabel : t.name}
                       </span>
@@ -148,7 +148,7 @@ function ThirdPlaceSection({ teams }: { teams: Team[] }) {
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {teams.map((t) => (
         <div key={t.id} className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-white/8 bg-surface-2">
-          <span className="text-lg">{getFlagEmoji(t.flagCode)}</span>
+          <Flag flagCode={t.flagCode} alt={t.name} size={20} />
           <span className="text-xs text-white/70 truncate">
             {t.isPlayoffWinner ? t.placeholderLabel : t.name}
           </span>
@@ -243,7 +243,9 @@ export default function BracketDetailPage() {
           <p className="relative text-[10px] font-semibold text-[#c9a84c]/60 uppercase tracking-[0.3em]">
             2026 World Cup Champion Pick
           </p>
-          <div className="relative text-7xl leading-none">{getFlagEmoji(champion.flagCode)}</div>
+          <div className="relative flex justify-center">
+            <Flag flagCode={champion.flagCode} alt={champion.name} size={80} className="rounded-md" />
+          </div>
           <h1 className="relative text-4xl font-black text-white tracking-tight">{champName}</h1>
 
           {bracket.finalScore && finalMatch?.homeTeam && finalMatch?.awayTeam && (
@@ -251,7 +253,7 @@ export default function BracketDetailPage() {
               <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3">Predicted Final Score</p>
               <div className="flex items-center justify-center gap-4">
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-xl">{getFlagEmoji(finalMatch.homeTeam.flagCode)}</span>
+                  <Flag flagCode={finalMatch.homeTeam.flagCode} alt={finalMatch.homeTeam.name} size={24} />
                   <span className="text-xs text-white/40">
                     {finalMatch.homeTeam.isPlayoffWinner ? finalMatch.homeTeam.placeholderLabel : finalMatch.homeTeam.name}
                   </span>
@@ -259,7 +261,7 @@ export default function BracketDetailPage() {
                 </div>
                 <span className="text-white/20 text-xl mb-4">—</span>
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-xl">{getFlagEmoji(finalMatch.awayTeam.flagCode)}</span>
+                  <Flag flagCode={finalMatch.awayTeam.flagCode} alt={finalMatch.awayTeam.name} size={24} />
                   <span className="text-xs text-white/40">
                     {finalMatch.awayTeam.isPlayoffWinner ? finalMatch.awayTeam.placeholderLabel : finalMatch.awayTeam.name}
                   </span>

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import type { KnockoutMatch, Team } from '@/types/tournament';
-import { getFlagEmoji } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 import { OddsBadge } from '@/components/odds/OddsBadge';
 import { useBracketStore } from '@/store/bracketStore';
 import { cn } from '@/lib/utils/cn';
@@ -54,9 +54,11 @@ function TeamSlot({
         <span className="text-white/20 text-xs italic w-full">TBD</span>
       ) : (
         <>
-          <span className={cn('leading-none shrink-0', compact ? 'text-sm' : 'text-base')}>
-            {getFlagEmoji(team.flagCode)}
-          </span>
+          <Flag
+            flagCode={team.flagCode}
+            alt={team.name}
+            size={compact ? 16 : 20}
+          />
           <span className="font-medium truncate flex-1 text-xs">
             {team.isPlayoffWinner ? (team.placeholderLabel ?? team.name) : team.name}
           </span>

@@ -1,6 +1,7 @@
 'use client';
 
-import { getFlagEmoji, getTeamById } from '@/lib/tournament/teams';
+import { getTeamById } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 import { cn } from '@/lib/utils/cn';
 import type { GroupLabel, KnockoutMatch } from '@/types/tournament';
 import type { ScheduleMatch } from '@/data/schedule';
@@ -14,10 +15,10 @@ interface MatchCardProps {
   allScheduleMatches?: ScheduleMatch[];
 }
 
-const COUNTRY_FLAGS: Record<'USA' | 'Canada' | 'Mexico', string> = {
-  USA: '🇺🇸',
-  Canada: '🇨🇦',
-  Mexico: '🇲🇽',
+const HOST_COUNTRY_CODES: Record<'USA' | 'Canada' | 'Mexico', string> = {
+  USA: 'us',
+  Canada: 'ca',
+  Mexico: 'mx',
 };
 
 const POSITION_LABELS = ['1st', '2nd', '3rd', '4th'] as const;
@@ -67,14 +68,11 @@ function TeamRow({
   isCompleted?: boolean;
 }) {
   const team = teamId ? getTeamById(teamId) : undefined;
-  const flagEmoji = team ? getFlagEmoji(team.flagCode) : null;
 
   return (
     <div className="flex items-center gap-2 px-3 py-2.5">
       {/* Flag */}
-      {flagEmoji && (
-        <span className="text-base leading-none shrink-0">{flagEmoji}</span>
-      )}
+      {team && <Flag flagCode={team.flagCode} alt={team.name} size={20} />}
 
       {/* Name */}
       <span className={cn(
@@ -166,7 +164,7 @@ function findFixtureResult(
 }
 
 export function MatchCard({ match, userGroupRankings, bracketMatch, fixtureResults, allScheduleMatches }: MatchCardProps) {
-  const countryFlag = COUNTRY_FLAGS[match.country];
+  const hostCountryCode = HOST_COUNTRY_CODES[match.country];
   const fixture = fixtureResults?.length && allScheduleMatches?.length
     ? findFixtureResult(match, fixtureResults, allScheduleMatches)
     : undefined;
@@ -236,14 +234,12 @@ export function MatchCard({ match, userGroupRankings, bracketMatch, fixtureResul
     }
     if (bracketMatch.homeTeam && bracketMatch.homeTeam.id !== '__TBD__') {
       const t = bracketMatch.homeTeam;
-      const flag = getFlagEmoji(t.flagCode);
-      homeLabel = `${match.homeLabel} (${flag} ${t.name})`;
+      homeLabel = `${match.homeLabel} · ${t.name}`;
       homeTeamId = t.id;
     }
     if (bracketMatch.awayTeam && bracketMatch.awayTeam.id !== '__TBD__') {
       const t = bracketMatch.awayTeam;
-      const flag = getFlagEmoji(t.flagCode);
-      awayLabel = `${match.awayLabel} (${flag} ${t.name})`;
+      awayLabel = `${match.awayLabel} · ${t.name}`;
       awayTeamId = t.id;
     }
   }
@@ -272,8 +268,9 @@ export function MatchCard({ match, userGroupRankings, bracketMatch, fixtureResul
         )}
 
         {/* Venue — right-aligned */}
-        <span className="text-[10px] text-white/30 truncate max-w-[140px] text-right">
-          {countryFlag} {match.city}
+        <span className="flex items-center gap-1.5 text-[10px] text-white/30 truncate max-w-[160px] text-right">
+          <Flag flagCode={hostCountryCode} alt={match.country} size={16} />
+          <span className="truncate">{match.city}</span>
         </span>
       </div>
 

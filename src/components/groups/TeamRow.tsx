@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import type { Team } from '@/types/tournament';
-import { getFlagEmoji } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 import { OddsBadge } from '@/components/odds/OddsBadge';
 import { cn } from '@/lib/utils/cn';
 
@@ -36,7 +36,7 @@ export function TeamRow({ team, position, onClick, showPosition = true }: TeamRo
         </span>
       )}
 
-      <span className="text-lg leading-none shrink-0">{getFlagEmoji(team.flagCode)}</span>
+      <Flag flagCode={team.flagCode} alt={team.name} size={20} />
 
       <span className={cn(
         'text-sm flex-1 min-w-0 truncate',

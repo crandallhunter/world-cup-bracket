@@ -64,7 +64,13 @@ function assignThirdPlaceTeams(
   return assigned;
 }
 
-export function resolveR32Bracket(
+/**
+ * Build the 16 Round-of-32 matches from completed group standings
+ * and the 8 advancing 3rd-place teams. Implements the official FIFA
+ * Annex C fixed matchups (M1-M2, M4-M5, M8, M11-M12, M14) and the
+ * dynamic 3rd-place slots (M3, M6, M7, M9, M10, M13, M15, M16).
+ */
+function resolveR32Bracket(
   standings: Record<GroupLabel, GroupStanding>,
   advancingThirds: ThirdPlaceTeam[]
 ): KnockoutMatch[] {
@@ -141,7 +147,7 @@ R16_PAIRINGS.forEach(([homePos, awayPos], idx) => {
 });
 
 // Build subsequent knockout rounds from previous round winners (sequential pairing)
-export function buildNextRound(
+function buildNextRound(
   prevMatches: KnockoutMatch[],
   round: 'R16' | 'QF' | 'SF' | 'F'
 ): KnockoutMatch[] {

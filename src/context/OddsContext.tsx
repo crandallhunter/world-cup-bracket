@@ -39,10 +39,12 @@ export function OddsProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
-      // Strip internal keys before storing
+      // Strip internal metadata keys before storing as OddsMap
       const source = data.__source as string | undefined;
       const rawVolume = data.__volume as string | undefined | null;
-      const { __source: _s, __volume: _v, ...cleanData } = data;
+      const cleanData: Record<string, unknown> = { ...data };
+      delete cleanData.__source;
+      delete cleanData.__volume;
 
       setOdds(cleanData as OddsMap);
       if (rawVolume) setVolume(rawVolume);

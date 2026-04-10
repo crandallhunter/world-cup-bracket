@@ -7,10 +7,9 @@ import { SCHEDULE } from '@/data/schedule';
 import type { ScheduleRound } from '@/data/schedule';
 import type { GroupLabel } from '@/types/tournament';
 import type { FixtureResult } from '@/lib/db/types';
+import { GROUP_LABELS } from '@/lib/tournament/teams';
 import { cn } from '@/lib/utils/cn';
 import { MatchCard } from './MatchCard';
-
-const GROUP_LABELS: GroupLabel[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
 interface StageConfig {
   id: ScheduleRound;

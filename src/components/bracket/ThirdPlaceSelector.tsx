@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useBracketStore } from '@/store/bracketStore';
 import { getAllThirdPlaceTeams } from '@/lib/tournament/thirdPlace';
-import { getFlagEmoji } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 import { OddsBadge } from '@/components/odds/OddsBadge';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
@@ -68,7 +68,7 @@ export function ThirdPlaceSelector() {
                   : 'border-white/6 bg-surface-2 hover:border-white/12 text-white/50 hover:text-white/80'
               )}
             >
-              <span className="text-xl leading-none">{getFlagEmoji(team.flagCode)}</span>
+              <Flag flagCode={team.flagCode} alt={team.name} size={24} />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm truncate">
                   {team.isPlayoffWinner ? team.placeholderLabel : team.name}

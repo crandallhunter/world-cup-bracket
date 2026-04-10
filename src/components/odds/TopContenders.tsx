@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useOddsContext } from '@/context/OddsContext';
-import { ALL_TEAMS, getFlagEmoji } from '@/lib/tournament/teams';
+import { ALL_TEAMS } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 
 export function TopContenders() {
   const [mounted, setMounted] = useState(false);
@@ -70,9 +71,9 @@ export function TopContenders() {
                 </div>
 
                 {/* Flag */}
-                <span className="text-5xl mb-4 leading-none">
-                  {getFlagEmoji(team.flagCode)}
-                </span>
+                <div className="mb-4">
+                  <Flag flagCode={team.flagCode} alt={team.name} size={64} />
+                </div>
 
                 {/* Team name */}
                 <span className="text-base font-semibold text-white/60 mb-2">{team.name}</span>

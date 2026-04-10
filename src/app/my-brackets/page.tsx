@@ -5,7 +5,7 @@ import { useAccount } from 'wagmi';
 import { useIdentityStore } from '@/store/identityStore';
 import { useUserDivision } from '@/lib/web3/hooks/useUserDivision';
 import { DivisionBadge } from '@/components/divisions/DivisionBadge';
-import { getFlagEmoji } from '@/lib/tournament/teams';
+import { Flag } from '@/components/ui/Flag';
 import { getDivisionById } from '@/lib/divisions';
 import { Spinner } from '@/components/ui/Spinner';
 import Link from 'next/link';
@@ -133,8 +133,13 @@ export default function MyBracketPage() {
                 <p className="relative text-[9px] font-semibold text-[#c9a84c]/50 uppercase tracking-[0.3em] mb-2">
                   Your Champion Pick
                 </p>
-                <div className="relative text-5xl leading-none mb-2">
-                  {getFlagEmoji(submission.champion.flagCode)}
+                <div className="relative flex justify-center mb-2">
+                  <Flag
+                    flagCode={submission.champion.flagCode}
+                    alt={submission.champion.name}
+                    size={64}
+                    className="rounded-md"
+                  />
                 </div>
                 <h2 className="relative text-xl font-black text-white">
                   {submission.champion.name}
