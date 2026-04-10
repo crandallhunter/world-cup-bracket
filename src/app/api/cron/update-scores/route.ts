@@ -7,7 +7,7 @@ import {
   calculateTiebreaker,
 } from '@/lib/scoring';
 import type { RealResults } from '@/lib/scoring';
-import type { SubmissionScore, FixtureResult } from '@/lib/db/types';
+import type { SubmissionScore } from '@/lib/db/types';
 
 const API_BASE = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.APISPORTS_KEY ?? '';
@@ -41,12 +41,6 @@ function parseRound(apiRound: string): string | null {
   if (apiRound === '3rd Place') return '3P';
   if (apiRound === 'Final') return 'F';
   return null;
-}
-
-/** Map API round string to our schedule round format */
-function toScheduleRound(round: string): string {
-  if (round === 'GROUP') return 'GS';
-  return round; // R32, R16, QF, SF, 3P, F already match
 }
 
 function resolveTeamId(apiName: string): string | null {
@@ -86,9 +80,8 @@ export async function GET(req: NextRequest) {
     const data = await res.json();
     const fixtures: ApiFixture[] = data.response ?? [];
 
-    // ── 2. Build real results + individual fixture results from fixtures ──
+    // ── 2. Build aggregate round results from fixtures for scoring ──
     const results: RealResults = { ...EMPTY_RESULTS, updatedAt: Date.now() };
-    const fixtureResults: FixtureResult[] = [];
     const r32Set = new Set<string>();
     const r16Set = new Set<string>();
     const qfSet = new Set<string>();
@@ -104,30 +97,13 @@ export async function GET(req: NextRequest) {
       const awayId = resolveTeamId(fix.teams.away.name);
       if (!homeId || !awayId) continue;
 
-      // Determine winner
+      // Group stage results don't affect knockout scoring directly —
+      // advancement is inferred from the knockout fixtures themselves.
+      if (round === 'GROUP') continue;
+
       const winnerId = fix.teams.home.winner ? homeId
         : fix.teams.away.winner ? awayId
-        : null; // draw in group stage
-
-      // Save individual fixture result
-      const fixDate = fix.fixture.date ? fix.fixture.date.split('T')[0] : '';
-      fixtureResults.push({
-        homeId,
-        awayId,
-        homeGoals: fix.goals.home ?? 0,
-        awayGoals: fix.goals.away ?? 0,
-        round: toScheduleRound(round),
-        winnerId,
-        dateISO: fixDate,
-        dateTime: fix.fixture.date ?? '',
-        status: fix.fixture.status.short, // FT, AET, PEN
-      });
-
-      if (round === 'GROUP') {
-        // Group stage: both teams were in R32 contention
-        // We'll figure out R32 from the knockout fixtures instead
-        continue;
-      }
+        : null;
 
       // For knockout rounds, the teams playing in that round advanced to it
       if (round === 'R32') {
@@ -161,9 +137,8 @@ export async function GET(req: NextRequest) {
     results.sfTeams = [...sfSet];
     results.finalTeams = [...finalSet];
 
-    // ── 3. Save results + fixture details ──
+    // ── 3. Save aggregate results ──
     await db.saveResults(results);
-    await db.saveFixtures(fixtureResults);
 
     // ── 4. Recalculate all submission scores ──
     const submissions = await db.getAllSubmissions();
@@ -188,7 +163,6 @@ export async function GET(req: NextRequest) {
       success: true,
       fixturesProcessed: fixtures.length,
       submissionsScored: scores.length,
-      fixturesSaved: fixtureResults.length,
       results: {
         r32: results.r32Teams.length,
         r16: results.r16Teams.length,

@@ -35,19 +35,6 @@ export interface UsedToken {
   lockedAt: number; // Unix timestamp ms
 }
 
-/** A single completed fixture from the real tournament */
-export interface FixtureResult {
-  homeId: string;       // our 3-letter team ID
-  awayId: string;
-  homeGoals: number;
-  awayGoals: number;
-  round: string;        // 'GS' | 'R32' | 'R16' | 'QF' | 'SF' | '3P' | 'F'
-  winnerId: string | null; // null for group-stage draws
-  dateISO: string;      // "2026-06-11" — date portion for matching to schedule entries
-  dateTime: string;     // full ISO datetime from API, e.g. "2026-06-11T19:00:00+00:00"
-  status: string;       // 'FT' | 'AET' | 'PEN'
-}
-
 /** Cached score for a submission */
 export interface SubmissionScore {
   submissionId: string;
@@ -95,10 +82,4 @@ export interface DataStore {
   saveScores(scores: SubmissionScore[]): Promise<void>;
   /** Get all submission scores, sorted by total desc */
   getScores(): Promise<SubmissionScore[]>;
-
-  // ── Fixture results ──
-  /** Save all fixture results (replaces previous) */
-  saveFixtures(fixtures: FixtureResult[]): Promise<void>;
-  /** Get all fixture results */
-  getFixtures(): Promise<FixtureResult[]>;
 }

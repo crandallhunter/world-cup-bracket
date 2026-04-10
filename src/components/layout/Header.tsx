@@ -23,9 +23,6 @@ export function Header() {
           <Link href="/bracket" className="px-3 py-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors">
             Build Bracket
           </Link>
-          <Link href="/schedule" className="px-3 py-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors">
-            Schedule
-          </Link>
           <Link href="/leaderboard" className="px-3 py-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors">
             Leaderboard
           </Link>

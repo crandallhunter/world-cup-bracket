@@ -94,13 +94,15 @@ src/
 │   ├── globals.css                 Global styles + Tailwind import
 │   ├── bracket/page.tsx            Bracket builder (3-step flow)
 │   ├── divisions/page.tsx          Division overview page
-│   ├── schedule/page.tsx           Match schedule (104 games)
+│   ├── leaderboard/page.tsx        Leaderboard view
 │   ├── my-brackets/page.tsx        Submitted bracket view
 │   ├── my-brackets/[id]/page.tsx   Single bracket detail view
 │   └── api/
 │       ├── odds/route.ts           Polymarket odds API proxy
 │       ├── submit/route.ts         Bracket submission + lookup API
-│       └── divisions/route.ts      Division participant counts
+│       ├── leaderboard/route.ts    Leaderboard + scored entries
+│       ├── divisions/route.ts      Division participant counts
+│       └── cron/update-scores/     Daily scoring job (Vercel Cron)
 │
 ├── components/
 │   ├── bracket/                    Knockout bracket components
@@ -123,10 +125,6 @@ src/
 │   │
 │   ├── welcome/
 │   │   └── WelcomeModal.tsx        Initial welcome modal (3 paths)
-│   │
-│   ├── schedule/                   Match schedule components
-│   │   ├── ScheduleView.tsx        Stage tabs + group sub-tabs
-│   │   └── MatchCard.tsx           Single match fixture card
 │   │
 │   ├── submission/
 │   │   ├── SubmitModal.tsx         Success modal with division badge
@@ -187,9 +185,6 @@ src/
 │   │
 │   └── utils/
 │       └── cn.ts                   clsx + tailwind-merge helper
-│
-└── data/
-    └── schedule.ts                 All 104 matches (static JSON)
 
 
 5. APPLICATION FLOW
@@ -230,9 +225,6 @@ DIVISIONS (/divisions)
 
 MY BRACKETS (/my-brackets)
   Shows submitted bracket from API, with division badge
-
-SCHEDULE (/schedule)
-  All 104 matches with stage tabs and user's bracket picks
 
 
 6. KEY ARCHITECTURE DECISIONS

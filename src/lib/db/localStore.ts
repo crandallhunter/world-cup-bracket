@@ -7,7 +7,7 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import type { DataStore, Submission, UsedToken, SubmissionScore, FixtureResult } from './types';
+import type { DataStore, Submission, UsedToken, SubmissionScore } from './types';
 import type { RealResults } from '@/lib/scoring';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -18,7 +18,6 @@ interface StoreData {
   usedTokens: UsedToken[];
   results?: RealResults;
   scores?: SubmissionScore[];
-  fixtures?: FixtureResult[];
 }
 
 const EMPTY_STORE: StoreData = { submissions: [], usedTokens: [] };
@@ -132,16 +131,5 @@ export const localStore: DataStore = {
       if (b.tiebreaker !== null) return 1;
       return 0;
     });
-  },
-
-  async saveFixtures(fixtures) {
-    const store = await readStore();
-    store.fixtures = fixtures;
-    await writeStore(store);
-  },
-
-  async getFixtures() {
-    const store = await readStore();
-    return store.fixtures ?? [];
   },
 };
