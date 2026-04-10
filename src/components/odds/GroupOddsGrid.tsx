@@ -46,7 +46,11 @@ export function GroupOddsGrid() {
                 <div className="p-3 space-y-1">
                   {teams.map((team, i) => {
                     const prob = mounted ? (odds[team.id]?.probability ?? 0) : 0;
-                    const pct = mounted ? (odds[team.id]?.displayPct ?? (team.isPlayoffWinner ? '—' : '0%')) : '—';
+                    // Teams with no Polymarket entry (either no market, or
+                    // market priced at 0) are displayed as <1% rather than
+                    // 0%, since "no data" is not the same as "zero chance".
+                    // Playoff-winner placeholders stay as an em-dash.
+                    const pct = mounted ? (odds[team.id]?.displayPct ?? (team.isPlayoffWinner ? '—' : '<1%')) : '—';
                     const barWidth = globalMax > 0 ? (prob / globalMax) * 100 : 0;
                     const isTop = i === 0 && prob > 0;
 
