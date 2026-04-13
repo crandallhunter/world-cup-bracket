@@ -44,6 +44,7 @@ interface BracketStore {
   resetBracket: () => void;
 }
 
+/** Zustand store for the bracket builder — groups, knockout picks, score, and step navigation. */
 export const useBracketStore = create<BracketStore>((set, get) => ({
   currentStep: 'GROUPS',
   groupStandings: defaultStandings(),

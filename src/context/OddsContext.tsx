@@ -23,6 +23,7 @@ const OddsContext = createContext<OddsContextValue>({
 
 const POLL_INTERVAL = 5 * 60 * 1000;
 
+/** Fetches Polymarket odds on mount and polls every 5 min. Provides OddsMap to the tree. */
 export function OddsProvider({ children }: { children: React.ReactNode }) {
   const [odds, setOdds] = useState<OddsMap>({});
   const [isLive, setIsLive] = useState(false);
@@ -70,6 +71,7 @@ export function OddsProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Access the Polymarket odds data and metadata from any client component. */
 export function useOddsContext() {
   return useContext(OddsContext);
 }

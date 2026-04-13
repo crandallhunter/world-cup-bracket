@@ -46,6 +46,7 @@ interface IdentityStore {
   resetIdentity: () => void;
 }
 
+/** Zustand store for the user's identity — wallet, email, or explore mode. Persisted to localStorage. */
 export const useIdentityStore = create<IdentityStore>((set) => ({
   identity: null,
   hasSeenWelcome: false,

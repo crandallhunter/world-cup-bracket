@@ -4,7 +4,7 @@
 
 import type { KnockoutMatch, Team } from '@/types/tournament';
 
-// Points per correct pick in each round
+/** Points awarded per correct pick in each knockout round. Doubles every round. */
 export const POINTS_PER_ROUND: Record<string, number> = {
   R32: 10,
   R16: 20,
@@ -14,14 +14,16 @@ export const POINTS_PER_ROUND: Record<string, number> = {
   CHAMPION: 320,
 };
 
-// Max possible points per round (picks * points)
-// R32: 32 * 10 = 320, R16: 16 * 20 = 320, QF: 8 * 40 = 320,
-// SF: 4 * 80 = 320, F: 2 * 160 = 320, Champion: 1 * 320 = 320
-// Total max: 1,920
+/**
+ * Maximum achievable score (1,920). Each round contributes 320 max:
+ * R32 32×10, R16 16×20, QF 8×40, SF 4×80, F 2×160, Champion 1×320.
+ */
 export const MAX_POINTS = 1920;
 
-// ─── API-Football team name → our team ID mapping ───────────────────────────
-// API-Football uses full country names; our app uses 3-letter codes.
+/**
+ * API-Football team name → our canonical 3-letter team ID.
+ * API-Football uses full country names; our app uses 3-letter codes.
+ */
 export const API_NAME_TO_TEAM_ID: Record<string, string> = {
   'Mexico': 'MEX',
   'South Korea': 'KOR',

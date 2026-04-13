@@ -11,9 +11,10 @@ A full-stack bracket builder for the 2026 FIFA World Cup. Users predict group
 standings, pick 3rd-place qualifiers, build a knockout bracket, and crown a
 champion. Live odds from Polymarket prediction markets are displayed throughout.
 
-Division-based competition: users are placed into divisions (Diamond through
-Open) based on Meebits Futbol NFT holdings. Each division has its own prize
-pool. Email-only users compete in the Open division.
+Division-based competition: users are placed into divisions (Gold through
+Free) based on Meebits Futbol NFT holdings — including NFTs held by vault
+wallets that delegated to the user via delegate.xyz. Each division has its
+own prize pool. Email-only users compete in the Free division.
 
 Production URL:  https://meebits-futbol.vercel.app
 GitHub:          https://github.com/crandallhunter/world-cup-bracket
@@ -173,10 +174,12 @@ src/
 │   ├── web3/
 │   │   ├── wagmiConfig.ts          Wagmi chains + transports (mainnet)
 │   │   ├── nftContract.ts          NFT contract address + ABI
+│   │   ├── delegateRegistry.ts     Delegate.xyz v2 registry address + ABI
 │   │   ├── alchemy.ts              Alchemy getNFTsForOwner utility
 │   │   └── hooks/
 │   │       ├── useNFTBalance.ts    Read NFT balance from chain
-│   │       └── useUserDivision.ts  Derive division from NFT count
+│   │       ├── useDelegatedBalance.ts  Discover delegated vaults + balances
+│   │       └── useUserDivision.ts  Derive division from direct + delegated count
 │   │
 │   ├── db/
 │   │   ├── types.ts                DataStore interface, Submission, UsedToken
@@ -221,7 +224,7 @@ BRACKET BUILDER (/bracket)
     - Submit calls POST /api/submit
 
 DIVISIONS (/divisions)
-  Shows all 6 tiers with participant counts, user's current division
+  Shows all 4 tiers with participant counts, user's current division
 
 MY BRACKETS (/my-brackets)
   Shows submitted bracket from API, with division badge
@@ -264,8 +267,8 @@ R32 SEEDING (r32Seeding.ts)
   pairings via R32_TO_R16 lookup table. R16->QF->SF->F use sequential.
 
 DIVISION SYSTEM (divisions.ts)
-  6 tiers based on NFT holdings:
-    Diamond (10+), Platinum (7+), Gold (5+), Silver (3+), Bronze (1+), Open (0)
+  4 tiers based on NFT holdings (direct + delegated via delegate.xyz):
+    Gold (5+), Silver (3+), Bronze (1+), Free (0)
 
   Token ID locking prevents double-use: when a wallet submits, its
   specific token IDs are recorded. If those NFTs are transferred to

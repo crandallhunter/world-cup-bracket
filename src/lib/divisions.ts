@@ -19,7 +19,7 @@ export interface Division {
 
 export type DivisionId = 'gold' | 'silver' | 'bronze' | 'open';
 
-// Ordered highest → lowest so getDivision() returns the best eligible tier
+/** All divisions ordered highest → lowest so getDivisionForCount() returns the best eligible tier. */
 export const DIVISIONS: Division[] = [
   {
     id: 'gold',
@@ -79,10 +79,14 @@ export function getDivisionById(id: DivisionId): Division {
 }
 
 // ─── Tournament lock ─────────────────────────────────────────────────────────
-// After this date, no new submissions or division upgrades are allowed.
-// Set to the first match of the 2026 World Cup: June 11, 2026 at noon EDT.
+
+/**
+ * After this date, no new submissions or division upgrades are allowed.
+ * Set to the first match of the 2026 World Cup: June 11, 2026 at noon EDT.
+ */
 export const TOURNAMENT_LOCK_DATE = new Date('2026-06-11T16:00:00Z');
 
+/** True once the tournament has started (past TOURNAMENT_LOCK_DATE). */
 export function isTournamentLocked(): boolean {
   return new Date() >= TOURNAMENT_LOCK_DATE;
 }
