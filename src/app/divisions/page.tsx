@@ -29,7 +29,7 @@ export default function DivisionsPage() {
     gold: 0, silver: 0, bronze: 0, open: 0,
   });
   const [totalParticipants, setTotalParticipants] = useState(0);
-  const { division: userDivision, nftCount, isConnected } = useUserDivision();
+  const { division: userDivision, nftCount, delegatedBalance, isConnected } = useUserDivision();
 
   useEffect(() => {
     fetch('/api/divisions')
@@ -73,6 +73,9 @@ export default function DivisionsPage() {
               <p className="text-sm font-medium text-white">Your Division</p>
               <p className="text-xs text-white/35">
                 {nftCount} NFT{nftCount !== 1 ? 's' : ''} held
+                {delegatedBalance > 0 && (
+                  <span className="text-white/25"> ({delegatedBalance} via delegate.xyz)</span>
+                )}
               </p>
             </div>
           </div>

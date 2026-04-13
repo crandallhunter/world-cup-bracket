@@ -23,7 +23,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   const { openConnectModal } = useConnectModal();
   const { isConnected } = useAccount();
-  const { division, nftCount, isLoading } = useUserDivision();
+  const { division, nftCount, directBalance, delegatedBalance, isLoading } = useUserDivision();
 
   // If wallet just connected, switch to connected phase
   useEffect(() => {
@@ -94,6 +94,8 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
                   key="connected"
                   division={division}
                   nftCount={nftCount}
+                  directBalance={directBalance}
+                  delegatedBalance={delegatedBalance}
                   isLoading={isLoading}
                   onContinue={handleConnectedContinue}
                 />
@@ -264,11 +266,15 @@ function EmailPhase({
 function ConnectedPhase({
   division,
   nftCount,
+  directBalance,
+  delegatedBalance,
   isLoading,
   onContinue,
 }: {
   division: ReturnType<typeof useUserDivision>['division'];
   nftCount: number;
+  directBalance: number;
+  delegatedBalance: number;
   isLoading: boolean;
   onContinue: () => void;
 }) {
@@ -286,6 +292,12 @@ function ConnectedPhase({
   }
 
   const isNFTHolder = nftCount > 0;
+
+  // Build a human-readable breakdown when delegation is involved
+  const holdingDetail =
+    delegatedBalance > 0
+      ? `${directBalance} owned + ${delegatedBalance} delegated`
+      : undefined;
 
   return (
     <motion.div
@@ -314,9 +326,14 @@ function ConnectedPhase({
               </span>{' '}
               Division
             </h2>
-            <p className="text-sm text-white/40 mb-3">
+            <p className="text-sm text-white/40 mb-1">
               {nftCount} Meebits Futbol NFT{nftCount !== 1 ? 's' : ''} detected
             </p>
+            {holdingDetail && (
+              <p className="text-xs text-white/25 mb-3">
+                ({holdingDetail} via delegate.xyz)
+              </p>
+            )}
             {division && (
               <div className="flex justify-center">
                 <DivisionBadge division={division} size="lg" />
