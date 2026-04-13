@@ -33,7 +33,7 @@ export function TopContenders() {
         {/* Live indicator */}
         <div className="flex items-center gap-2 mb-8">
           {mounted && isLive && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
-          <span className="text-[11px] text-white/25 uppercase tracking-widest">
+          <span className="text-[11px] text-white/40 uppercase tracking-widest">
             {mounted && formattedVolume ? `${formattedVolume} vol · ` : ''}Live · Polymarket
           </span>
         </div>
@@ -59,7 +59,7 @@ export function TopContenders() {
                 <div className="flex items-center justify-between mb-6">
                   <span
                     className="text-[11px] font-black uppercase tracking-[0.2em]"
-                    style={{ color: isFirst ? '#6366f1' : 'rgba(255,255,255,0.2)' }}
+                    style={{ color: isFirst ? '#6366f1' : 'rgba(255,255,255,0.35)' }}
                   >
                     #{i + 1}
                   </span>
@@ -76,7 +76,7 @@ export function TopContenders() {
                 </div>
 
                 {/* Team name */}
-                <span className="text-base font-semibold text-white/60 mb-2">{team.name}</span>
+                <span className="text-base font-semibold text-white/70 mb-2">{team.name}</span>
 
                 {/* Big percentage */}
                 <span

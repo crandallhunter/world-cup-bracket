@@ -32,7 +32,7 @@ export default function HomePage() {
 
           {/* Subtext + CTA */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-14">
-            <p className="text-white/40 text-base max-w-sm leading-relaxed">
+            <p className="text-white/50 text-base max-w-sm leading-relaxed">
               Build your full 2026 World Cup bracket — from group stage to the Final.
             </p>
             <Link
@@ -56,7 +56,7 @@ export default function HomePage() {
                 className="flex flex-col px-5 py-3.5 rounded-2xl border border-white/8 bg-white/[0.03]"
               >
                 <span className="text-2xl font-black text-[#6366f1] leading-none">{s.value}</span>
-                <span className="text-xs text-white/35 mt-1 uppercase tracking-widest">{s.label}</span>
+                <span className="text-xs text-white/50 mt-1 uppercase tracking-widest">{s.label}</span>
               </div>
             ))}
           </div>
@@ -84,7 +84,7 @@ export default function HomePage() {
           <h2 className="text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-[-0.03em] uppercase mb-4">
             How it works
           </h2>
-          <p className="text-white/35 text-base mb-16 max-w-lg">
+          <p className="text-white/50 text-base mb-16 max-w-lg">
             Four steps to build your complete 2026 World Cup prediction — from groups all the way to the Final.
           </p>
 
@@ -101,7 +101,7 @@ export default function HomePage() {
                 <div className="flex items-center mb-6">
                   <div className="w-11 h-11 rounded-full border border-white/15 flex items-center justify-center shrink-0">
                     <div className="w-7 h-7 rounded-full border border-white/20 flex items-center justify-center">
-                      <span className="text-[10px] font-black text-white/30 tracking-widest">{step.num}</span>
+                      <span className="text-[11px] font-black text-white/40 tracking-widest">{step.num}</span>
                     </div>
                   </div>
                   {i < arr.length - 1 && (
@@ -110,7 +110,7 @@ export default function HomePage() {
                 </div>
 
                 <h3 className="text-lg font-black tracking-[-0.01em] mb-2">{step.title}</h3>
-                <p className="text-white/35 text-sm leading-relaxed">{step.body}</p>
+                <p className="text-white/50 text-sm leading-relaxed">{step.body}</p>
               </div>
             ))}
           </div>
@@ -132,7 +132,7 @@ export default function HomePage() {
           <h2 className="text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-[-0.03em] uppercase mb-4">
             What are the odds?
           </h2>
-          <p className="text-white/35 text-base max-w-lg">
+          <p className="text-white/50 text-base max-w-lg">
             Live Polymarket prediction markets — see every team's chance of lifting the trophy, right as the market sees it.
           </p>
         </div>

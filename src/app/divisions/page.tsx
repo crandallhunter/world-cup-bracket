@@ -54,7 +54,7 @@ export default function DivisionsPage() {
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Divisions</h1>
-        <p className="text-white/40 text-sm">
+        <p className="text-white/50 text-sm">
           Compete for prizes based on your Meebits Futbol NFT holdings.
           The more you hold, the higher the division.
         </p>
@@ -71,10 +71,10 @@ export default function DivisionsPage() {
             <DivisionBadge division={userDivision} size="lg" />
             <div>
               <p className="text-sm font-medium text-white">Your Division</p>
-              <p className="text-xs text-white/35">
+              <p className="text-xs text-white/45">
                 {nftCount} NFT{nftCount !== 1 ? 's' : ''} held
                 {delegatedBalance > 0 && (
-                  <span className="text-white/25"> ({delegatedBalance} via delegate.xyz)</span>
+                  <span className="text-white/35"> ({delegatedBalance} via delegate.xyz)</span>
                 )}
               </p>
             </div>
@@ -89,7 +89,7 @@ export default function DivisionsPage() {
       )}
 
       {/* Stats bar */}
-      <div className="flex items-center gap-4 text-xs text-white/30">
+      <div className="flex items-center gap-4 text-xs text-white/40">
         <span className="tabular-nums">{totalParticipants} total participant{totalParticipants !== 1 ? 's' : ''}</span>
         <span className="h-3 w-px bg-white/10" />
         <span>6 divisions</span>
@@ -137,12 +137,12 @@ export default function DivisionsPage() {
                         {div.name}
                       </h3>
                       {isUserDivision && (
-                        <span className="text-[9px] uppercase tracking-widest text-white/40 border border-white/10 rounded-full px-2 py-0.5">
+                        <span className="text-[10px] uppercase tracking-widest text-white/45 border border-white/10 rounded-full px-2 py-0.5">
                           You
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-white/40">
+                    <p className="text-sm text-white/50">
                       {div.id === 'open'
                         ? 'Open to everyone — no NFT required'
                         : `Requires ${div.minNFTs}+ Meebits Futbol NFTs`}
@@ -154,7 +154,7 @@ export default function DivisionsPage() {
                   <div className="text-sm font-mono text-white/50">
                     {div.prize}
                   </div>
-                  <div className="text-[11px] text-white/20">
+                  <div className="text-[11px] text-white/35">
                     {count} participant{count !== 1 ? 's' : ''}
                   </div>
                 </div>
@@ -167,7 +167,7 @@ export default function DivisionsPage() {
       {/* CTA */}
       {!isConnected && (
         <div className="text-center pt-4">
-          <p className="text-sm text-white/30 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Connect your wallet to see which division you qualify for.
           </p>
           <Link

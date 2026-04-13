@@ -15,9 +15,9 @@ interface TeamRowProps {
 
 const positionStyles = [
   'text-white/60',       // 1st
-  'text-white/40',       // 2nd
-  'text-white/25',       // 3rd
-  'text-white/15',       // 4th
+  'text-white/45',       // 2nd
+  'text-white/35',       // 3rd
+  'text-white/25',       // 4th
 ];
 
 export function TeamRow({ team, position, onClick, showPosition = true }: TeamRowProps) {
@@ -40,7 +40,7 @@ export function TeamRow({ team, position, onClick, showPosition = true }: TeamRo
 
       <span className={cn(
         'text-sm flex-1 min-w-0 truncate',
-        team.isPlayoffWinner ? 'italic text-white/25' : 'text-white/80'
+        team.isPlayoffWinner ? 'italic text-white/35' : 'text-white/80'
       )}>
         {team.isPlayoffWinner ? team.placeholderLabel : team.name}
       </span>

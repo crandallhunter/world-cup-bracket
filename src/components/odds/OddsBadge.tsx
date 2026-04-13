@@ -14,7 +14,7 @@ export function OddsBadge({ teamId, className }: OddsBadgeProps) {
 
   const displayPct = odds?.displayPct ?? '<1%';
   // If no odds data at all, show a dimmer badge since it's a fallback estimate
-  const pctStyle = odds ? 'text-white/70' : 'text-white/35';
+  const pctStyle = odds ? 'text-white/70' : 'text-white/45';
 
   return (
     <span
@@ -22,7 +22,7 @@ export function OddsBadge({ teamId, className }: OddsBadgeProps) {
       title="Chance of winning the 2026 World Cup · Polymarket prediction market"
     >
       <span className={`text-xs font-bold ${pctStyle}`}>{displayPct}</span>
-      <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wide">
+      <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wide">
         {isLive ? 'WC ●' : 'WC'}
       </span>
     </span>

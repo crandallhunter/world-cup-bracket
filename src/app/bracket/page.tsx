@@ -178,7 +178,7 @@ export default function BracketPage() {
                     ? 'bg-white/8 text-white'
                     : idx < currentIdx
                     ? 'text-white/40 hover:text-white/70 hover:bg-white/5'
-                    : 'text-white/20 cursor-not-allowed'
+                    : 'text-white/30 cursor-not-allowed'
                 )}
                 disabled={idx > currentIdx}
               >
@@ -189,7 +189,7 @@ export default function BracketPage() {
                       ? 'border-white/40 bg-white/10 text-white'
                       : idx < currentIdx
                       ? 'border-white/20 bg-white/5 text-white/50'
-                      : 'border-white/10 text-white/20'
+                      : 'border-white/10 text-white/30'
                   )}
                 >
                   {idx < currentIdx ? '✓' : idx + 1}
@@ -203,7 +203,7 @@ export default function BracketPage() {
           ))}
 
           <button
-            className="ml-auto text-xs text-white/25 hover:text-white/50 transition-colors shrink-0 flex items-center gap-1"
+            className="ml-auto text-xs text-white/35 hover:text-white/60 transition-colors shrink-0 flex items-center gap-1"
             onClick={() => setIntroStep(currentStep)}
           >
             <span>?</span> How does this work

@@ -39,8 +39,8 @@ function ReadOnlyMatch({ match }: { match: KnockoutMatch }) {
     if (!team) {
       return (
         <div className="flex items-center gap-2 px-2.5 py-1.5">
-          <span className="text-sm w-5 text-center text-white/15">—</span>
-          <span className="text-xs text-white/20 italic">TBD</span>
+          <span className="text-sm w-5 text-center text-white/25">—</span>
+          <span className="text-xs text-white/30 italic">TBD</span>
         </div>
       );
     }
@@ -51,7 +51,7 @@ function ReadOnlyMatch({ match }: { match: KnockoutMatch }) {
         <span className={`text-xs truncate max-w-[80px] ${isWinner ? 'text-white font-semibold' : 'text-white/45'}`}>
           {name}
         </span>
-        {isWinner && <span className="ml-auto text-[9px] text-white/30">✓</span>}
+        {isWinner && <span className="ml-auto text-[10px] text-white/40">✓</span>}
       </div>
     );
   }
@@ -74,7 +74,7 @@ function KnockoutSection({ picks }: { picks: KnockoutMatch[] }) {
           if (!matches.length) return null;
           return (
             <div key={round} className="flex flex-col gap-2">
-              <div className="text-[10px] font-semibold text-white/25 uppercase tracking-widest text-center pb-1.5 border-b border-white/6">
+              <div className="text-[11px] font-semibold text-white/40 uppercase tracking-widest text-center pb-1.5 border-b border-white/6">
                 {ROUND_LABELS[round]}
               </div>
               <div className="flex flex-col justify-around gap-2 flex-1">
@@ -114,7 +114,7 @@ function GroupsSection({ standings }: { standings: GroupStanding[] }) {
                       <span className="text-xs text-white/60 hidden sm:block">{t.name}</span>
                     </div>
                   ))}
-                  <span className="text-white/20 text-xs">+2 more</span>
+                  <span className="text-white/30 text-xs">+2 more</span>
                 </div>
                 <span className="text-white/30 text-sm">{isOpen ? '↑' : '↓'}</span>
               </button>
@@ -122,15 +122,15 @@ function GroupsSection({ standings }: { standings: GroupStanding[] }) {
                 <div className="border-t border-white/6 px-4 py-3 space-y-1.5 bg-black/20">
                   {gs.rankings.map((t, pos) => (
                     <div key={t.id} className="flex items-center gap-3">
-                      <span className={`text-xs font-bold w-4 ${pos < 2 ? 'text-white/60' : 'text-white/20'}`}>
+                      <span className={`text-xs font-bold w-4 ${pos < 2 ? 'text-white/60' : 'text-white/30'}`}>
                         {pos + 1}
                       </span>
                       <Flag flagCode={t.flagCode} alt={t.name} size={20} />
-                      <span className={`text-sm ${pos < 2 ? 'text-white/80' : 'text-white/30'}`}>
+                      <span className={`text-sm ${pos < 2 ? 'text-white/80' : 'text-white/40'}`}>
                         {t.isPlayoffWinner ? t.placeholderLabel : t.name}
                       </span>
                       {pos < 2 && (
-                        <span className="ml-auto text-[9px] text-white/30 uppercase tracking-wide">Advance</span>
+                        <span className="ml-auto text-[10px] text-white/40 uppercase tracking-wide">Advance</span>
                       )}
                     </div>
                   ))}
@@ -226,7 +226,7 @@ export default function BracketDetailPage() {
         <div className="flex items-center gap-2">
           <span className="text-sm text-white/50">My Bracket</span>
           {division && <DivisionBadge division={division} size="sm" />}
-          <span className="text-xs text-white/25 ml-1">{submittedDate}</span>
+          <span className="text-xs text-white/35 ml-1">{submittedDate}</span>
         </div>
       </div>
 
@@ -250,7 +250,7 @@ export default function BracketDetailPage() {
 
           {bracket.finalScore && finalMatch?.homeTeam && finalMatch?.awayTeam && (
             <div className="relative mt-4 pt-4 border-t border-white/8">
-              <p className="text-[10px] text-white/30 uppercase tracking-widest mb-3">Predicted Final Score</p>
+              <p className="text-[11px] text-white/40 uppercase tracking-widest mb-3">Predicted Final Score</p>
               <div className="flex items-center justify-center gap-4">
                 <div className="flex flex-col items-center gap-1">
                   <Flag flagCode={finalMatch.homeTeam.flagCode} alt={finalMatch.homeTeam.name} size={24} />
@@ -259,7 +259,7 @@ export default function BracketDetailPage() {
                   </span>
                   <span className="text-3xl font-black text-white">{bracket.finalScore.home}</span>
                 </div>
-                <span className="text-white/20 text-xl mb-4">—</span>
+                <span className="text-white/30 text-xl mb-4">—</span>
                 <div className="flex flex-col items-center gap-1">
                   <Flag flagCode={finalMatch.awayTeam.flagCode} alt={finalMatch.awayTeam.name} size={24} />
                   <span className="text-xs text-white/40">

@@ -37,7 +37,7 @@ export function GroupOddsGrid() {
               >
                 {/* Group header */}
                 <div className="px-4 py-3 border-b border-white/6 flex items-center justify-between">
-                  <span className="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">
+                  <span className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em]">
                     Group {groupLabel}
                   </span>
                 </div>
@@ -67,13 +67,13 @@ export function GroupOddsGrid() {
                           <div className="flex items-center justify-between gap-1 mb-1">
                             <span
                               className="text-xs font-semibold truncate"
-                              style={{ color: isTop ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.45)' }}
+                              style={{ color: isTop ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.55)' }}
                             >
                               {team.name}
                             </span>
                             <span
                               className="text-xs font-bold tabular-nums shrink-0"
-                              style={{ color: isTop ? '#818cf8' : 'rgba(255,255,255,0.3)' }}
+                              style={{ color: isTop ? '#818cf8' : 'rgba(255,255,255,0.4)' }}
                             >
                               {pct}
                             </span>
@@ -100,7 +100,7 @@ export function GroupOddsGrid() {
         </div>
 
         {/* Footer */}
-        <p className="text-[11px] text-white/20 mt-6">
+        <p className="text-[11px] text-white/35 mt-6">
           Win probability sourced from Polymarket prediction markets · updates every 5 min
         </p>
       </div>

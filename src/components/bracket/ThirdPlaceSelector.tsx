@@ -37,7 +37,7 @@ export function ThirdPlaceSelector() {
         <div className="flex items-baseline justify-between">
           <h2 className="text-lg font-bold text-white">Best 3rd-Place Teams</h2>
           <span className="text-sm tabular-nums text-white/40">
-            {selectedCount}<span className="text-white/20">/8</span>
+            {selectedCount}<span className="text-white/30">/8</span>
           </span>
         </div>
         <div className="h-px bg-white/8 rounded-full overflow-hidden">
@@ -73,7 +73,7 @@ export function ThirdPlaceSelector() {
                 <div className="font-medium text-sm truncate">
                   {team.isPlayoffWinner ? team.placeholderLabel : team.name}
                 </div>
-                <div className="text-xs text-white/25">Group {team.sourceGroup}</div>
+                <div className="text-xs text-white/35">Group {team.sourceGroup}</div>
               </div>
               {!team.isPlayoffWinner && <OddsBadge teamId={team.id} />}
               {isSelected && <span className="text-white/50 text-sm shrink-0">✓</span>}

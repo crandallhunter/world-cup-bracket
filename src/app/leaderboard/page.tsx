@@ -72,7 +72,7 @@ export default function LeaderboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Leaderboard</h1>
-        <p className="text-sm text-white/40 mt-1">
+        <p className="text-sm text-white/50 mt-1">
           {totalParticipants} participant{totalParticipants !== 1 ? 's' : ''}
           {lastUpdated && (
             <span>
@@ -89,7 +89,7 @@ export default function LeaderboardPage() {
       </div>
 
       {/* Scoring legend */}
-      <div className="flex flex-wrap gap-2 text-[10px] text-white/30">
+      <div className="flex flex-wrap gap-2 text-[11px] text-white/40">
         {Object.entries(POINTS_PER_ROUND).map(([round, pts]) => (
           <span key={round} className="px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.06]">
             {round === 'CHAMPION' ? 'Champion' : round}: {pts} pts
@@ -110,7 +110,7 @@ export default function LeaderboardPage() {
               'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0',
               tab === t.id
                 ? 'bg-white/10 text-white'
-                : 'text-white/35 hover:text-white/60 hover:bg-white/5'
+                : 'text-white/45 hover:text-white/70 hover:bg-white/5'
             )}
           >
             {t.label}
@@ -127,7 +127,7 @@ export default function LeaderboardPage() {
         <div className="flex flex-col items-center gap-4 py-16 text-center border border-white/8 rounded-2xl bg-white/[0.02]">
           <div className="text-4xl">🏆</div>
           <h3 className="text-lg font-semibold">No entries yet</h3>
-          <p className="text-sm text-white/40 max-w-xs">
+          <p className="text-sm text-white/50 max-w-xs">
             {tab === 'all'
               ? 'Brackets will appear here once people start submitting.'
               : `No brackets submitted in the ${TABS.find((t) => t.id === tab)?.label} division yet.`}
@@ -138,14 +138,14 @@ export default function LeaderboardPage() {
         <div className="space-y-4">
           <div className="flex flex-col items-center gap-3 py-8 text-center border border-white/8 rounded-2xl bg-white/[0.02]">
             <div className="text-3xl">⏳</div>
-            <p className="text-sm text-white/40">
+            <p className="text-sm text-white/50">
               Scores will update daily at 10 AM EST once the tournament begins.
             </p>
           </div>
 
           {/* Show participants list without scores */}
           <div className="border border-white/8 rounded-xl overflow-hidden">
-            <div className="grid grid-cols-[3rem_1fr_auto] gap-2 px-4 py-2.5 text-[10px] text-white/25 uppercase tracking-widest border-b border-white/6">
+            <div className="grid grid-cols-[3rem_1fr_auto] gap-2 px-4 py-2.5 text-[11px] text-white/35 uppercase tracking-widest border-b border-white/6">
               <span>#</span>
               <span>Player</span>
               <span>Champion</span>
@@ -163,7 +163,7 @@ export default function LeaderboardPage() {
                     isUser && 'bg-[#6366f1]/8'
                   )}
                 >
-                  <span className="text-sm font-bold text-white/30">{i + 1}</span>
+                  <span className="text-sm font-bold text-white/40">{i + 1}</span>
                   <div className="flex items-center gap-2 min-w-0">
                     <DivisionBadge division={getDivisionById(entry.divisionId)} size="sm" showLabel={false} />
                     <span className="text-sm text-white/70 truncate font-mono">
@@ -172,7 +172,7 @@ export default function LeaderboardPage() {
                         : `${entry.identifier.slice(0, 6)}...${entry.identifier.slice(-4)}`}
                     </span>
                     {isUser && (
-                      <span className="text-[9px] text-[#6366f1] font-semibold uppercase tracking-wide">You</span>
+                      <span className="text-[10px] text-[#6366f1] font-semibold uppercase tracking-wide">You</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -191,7 +191,7 @@ export default function LeaderboardPage() {
       ) : (
         /* Full scored leaderboard */
         <div className="border border-white/8 rounded-xl overflow-hidden">
-          <div className="grid grid-cols-[3rem_1fr_4rem_4rem_4rem_4rem_4rem_4rem_4.5rem] gap-1 px-4 py-2.5 text-[10px] text-white/25 uppercase tracking-widest border-b border-white/6 overflow-x-auto">
+          <div className="grid grid-cols-[3rem_1fr_4rem_4rem_4rem_4rem_4rem_4rem_4.5rem] gap-1 px-4 py-2.5 text-[11px] text-white/35 uppercase tracking-widest border-b border-white/6 overflow-x-auto">
             <span>#</span>
             <span>Player</span>
             <span className="text-right">R32</span>
@@ -220,7 +220,7 @@ export default function LeaderboardPage() {
                 >
                   <span className={cn(
                     'text-sm font-bold',
-                    i === 0 ? 'text-[#c9a84c]' : i === 1 ? 'text-white/50' : i === 2 ? 'text-orange-400/70' : 'text-white/25'
+                    i === 0 ? 'text-[#c9a84c]' : i === 1 ? 'text-white/50' : i === 2 ? 'text-orange-400/70' : 'text-white/35'
                   )}>
                     {i + 1}
                   </span>
@@ -232,7 +232,7 @@ export default function LeaderboardPage() {
                         : `${entry.identifier.slice(0, 6)}...${entry.identifier.slice(-4)}`}
                     </span>
                     {isUser && (
-                      <span className="text-[9px] text-[#6366f1] font-semibold uppercase tracking-wide">You</span>
+                      <span className="text-[10px] text-[#6366f1] font-semibold uppercase tracking-wide">You</span>
                     )}
                     {entry.champion && (
                       <span className="ml-auto hidden sm:block" title={entry.champion.name}>

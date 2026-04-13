@@ -29,8 +29,8 @@ export function GroupStage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between text-xs">
-        <span className="text-white/30 uppercase tracking-widest font-medium">Group Stage</span>
-        <span className="text-white/40 text-[11px]">Drag to reorder teams in each group</span>
+        <span className="text-white/40 uppercase tracking-widest font-medium">Group Stage</span>
+        <span className="text-white/50 text-[11px]">Drag to reorder teams in each group</span>
       </div>
 
       {/* Group grid */}

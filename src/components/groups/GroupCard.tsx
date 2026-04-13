@@ -39,7 +39,7 @@ export function GroupCard({ group, standing }: GroupCardProps) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/6">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-semibold text-white/25 uppercase tracking-widest">Group</span>
+          <span className="text-[11px] font-semibold text-white/40 uppercase tracking-widest">Group</span>
           <span className="text-base font-black text-white">{group}</span>
         </div>
       </div>

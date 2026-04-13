@@ -51,7 +51,7 @@ function TeamSlot({
       )}
     >
       {isTbd ? (
-        <span className="text-white/20 text-xs italic w-full">TBD</span>
+        <span className="text-white/30 text-xs italic w-full">TBD</span>
       ) : (
         <>
           <Flag

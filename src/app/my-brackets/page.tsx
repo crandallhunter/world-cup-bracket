@@ -130,7 +130,7 @@ export default function MyBracketPage() {
                   className="absolute inset-0 pointer-events-none"
                   style={{ background: 'radial-gradient(ellipse at 50% -10%, rgba(201,168,76,0.1) 0%, transparent 65%)' }}
                 />
-                <p className="relative text-[9px] font-semibold text-[#c9a84c]/50 uppercase tracking-[0.3em] mb-2">
+                <p className="relative text-[10px] font-semibold text-[#c9a84c]/60 uppercase tracking-[0.3em] mb-2">
                   Your Champion Pick
                 </p>
                 <div className="relative flex justify-center mb-2">
@@ -156,7 +156,7 @@ export default function MyBracketPage() {
                     size="md"
                   />
                 )}
-                <div className="text-xs text-white/30">
+                <div className="text-xs text-white/40">
                   Submitted{' '}
                   {new Date(submission.submittedAt).toLocaleDateString('en-US', {
                     month: 'short',
@@ -176,7 +176,7 @@ export default function MyBracketPage() {
 
           {/* Bracket submitted confirmation */}
           <div className="text-center py-3">
-            <p className="text-xs text-white/25">
+            <p className="text-xs text-white/35">
               Your bracket is locked in. Good luck! 🍀
             </p>
           </div>

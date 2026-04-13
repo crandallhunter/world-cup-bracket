@@ -131,14 +131,14 @@ function MainPhase({
       <div className="text-center mb-6">
         <div className="text-4xl mb-3">🏆</div>
         <h2 className="text-xl font-bold text-white mb-1">Bracket Challenge 2026</h2>
-        <p className="text-sm text-white/40">
+        <p className="text-sm text-white/50">
           Build your bracket. Pick your champion. Compete for prizes.
         </p>
       </div>
 
       {/* Division tiers */}
       <div className="space-y-1 mb-6">
-        <div className="text-[10px] uppercase tracking-widest text-white/25 font-medium mb-2 px-1">
+        <div className="text-[11px] uppercase tracking-widest text-white/35 font-medium mb-2 px-1">
           Divisions & Prizes
         </div>
         {DIVISIONS.map((div) => (
@@ -152,12 +152,12 @@ function MainPhase({
                 <span className={`text-sm font-semibold bg-gradient-to-r ${div.color} bg-clip-text text-transparent`}>
                   {div.name}
                 </span>
-                <span className="text-[11px] text-white/30 ml-2">
+                <span className="text-[11px] text-white/40 ml-2">
                   {div.id === 'open' ? 'Free' : `${div.minNFTs}+ NFTs`}
                 </span>
               </div>
             </div>
-            <span className="text-[11px] text-white/20 font-mono">
+            <span className="text-[11px] text-white/35 font-mono">
               {div.prize}
             </span>
           </div>
@@ -187,7 +187,7 @@ function MainPhase({
       <div className="mt-4 text-center">
         <button
           onClick={onExplore}
-          className="text-xs text-white/25 hover:text-white/50 transition-colors"
+          className="text-xs text-white/35 hover:text-white/60 transition-colors"
         >
           Just exploring for now — connect later to submit →
         </button>
@@ -221,7 +221,7 @@ function EmailPhase({
     >
       <button
         onClick={onBack}
-        className="text-xs text-white/30 hover:text-white/60 transition-colors mb-4"
+        className="text-xs text-white/40 hover:text-white/60 transition-colors mb-4"
       >
         ← Back
       </button>
@@ -229,7 +229,7 @@ function EmailPhase({
       <div className="text-center mb-6">
         <div className="text-4xl mb-3">🌍</div>
         <h2 className="text-lg font-bold text-white mb-1">Join the Free Division</h2>
-        <p className="text-sm text-white/40">
+        <p className="text-sm text-white/50">
           Enter your email to participate in the free community division. One bracket per email.
         </p>
       </div>
@@ -242,7 +242,7 @@ function EmailPhase({
             onChange={(e) => onEmailChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
             placeholder="your@email.com"
-            className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/25 transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
           />
           {error && (
             <p className="text-red-400 text-xs mt-1.5 px-1">{error}</p>
@@ -254,7 +254,7 @@ function EmailPhase({
         </Button>
       </div>
 
-      <p className="text-[11px] text-white/20 text-center mt-4 leading-relaxed">
+      <p className="text-[11px] text-white/35 text-center mt-4 leading-relaxed">
         Your email is only used to identify your bracket submission. We won't spam you.
       </p>
     </motion.div>
@@ -326,11 +326,11 @@ function ConnectedPhase({
               </span>{' '}
               Division
             </h2>
-            <p className="text-sm text-white/40 mb-1">
+            <p className="text-sm text-white/50 mb-1">
               {nftCount} Meebits Futbol NFT{nftCount !== 1 ? 's' : ''} detected
             </p>
             {holdingDetail && (
-              <p className="text-xs text-white/25 mb-3">
+              <p className="text-xs text-white/35 mb-3">
                 ({holdingDetail} via delegate.xyz)
               </p>
             )}
@@ -347,7 +347,7 @@ function ConnectedPhase({
               <span className="text-white/60">Free</span>{' '}
               Division
             </h2>
-            <p className="text-sm text-white/40">
+            <p className="text-sm text-white/50">
               No Meebits Futbol NFTs found — you can still build and submit your bracket in the Free division!
             </p>
           </>

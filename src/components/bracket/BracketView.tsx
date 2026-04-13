@@ -183,10 +183,10 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
             >
               <div className="border-t border-white/8 pt-4 space-y-1">
                 <div className="flex items-center justify-center gap-2">
-                  <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">
+                  <p className="text-[11px] font-semibold text-white/45 uppercase tracking-widest">
                     Predict the Final Score
                   </p>
-                  <span className="text-[9px] text-white/20 border border-white/10 rounded-full px-2 py-0.5">
+                  <span className="text-[10px] text-white/35 border border-white/10 rounded-full px-2 py-0.5">
                     tiebreaker
                   </span>
                 </div>
@@ -194,14 +194,14 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
               <div className="flex items-end justify-center gap-6">
                 <div className="flex flex-col items-center gap-1.5">
                   <Flag flagCode={homeTeam.flagCode} alt={homeTeam.name} size={24} />
-                  <span className="text-[10px] text-white/30 max-w-[72px] text-center truncate">
+                  <span className="text-[11px] text-white/40 max-w-[72px] text-center truncate">
                     {homeTeam.isPlayoffWinner ? homeTeam.placeholderLabel : homeTeam.name}
                   </span>
                   <div className="flex flex-col items-center">
                     <button
                       type="button"
                       onClick={() => setHome(Math.min(20, home + 1))}
-                      className="w-14 h-7 flex items-center justify-center rounded-t-xl border border-b-0 border-white/12 bg-white/[0.04] text-white/30 hover:bg-white/[0.1] hover:text-white/60 transition-colors"
+                      className="w-14 h-7 flex items-center justify-center rounded-t-xl border border-b-0 border-white/12 bg-white/[0.04] text-white/40 hover:bg-white/[0.1] hover:text-white/70 transition-colors"
                     >
                       <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
@@ -211,23 +211,23 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
                     <button
                       type="button"
                       onClick={() => setHome(Math.max(0, home - 1))}
-                      className="w-14 h-7 flex items-center justify-center rounded-b-xl border border-t-0 border-white/12 bg-white/[0.04] text-white/30 hover:bg-white/[0.1] hover:text-white/60 transition-colors"
+                      className="w-14 h-7 flex items-center justify-center rounded-b-xl border border-t-0 border-white/12 bg-white/[0.04] text-white/40 hover:bg-white/[0.1] hover:text-white/70 transition-colors"
                     >
                       <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
                   </div>
                 </div>
-                <span className="text-white/20 text-xl mb-5">—</span>
+                <span className="text-white/30 text-xl mb-5">—</span>
                 <div className="flex flex-col items-center gap-1.5">
                   <Flag flagCode={awayTeam.flagCode} alt={awayTeam.name} size={24} />
-                  <span className="text-[10px] text-white/30 max-w-[72px] text-center truncate">
+                  <span className="text-[11px] text-white/40 max-w-[72px] text-center truncate">
                     {awayTeam.isPlayoffWinner ? awayTeam.placeholderLabel : awayTeam.name}
                   </span>
                   <div className="flex flex-col items-center">
                     <button
                       type="button"
                       onClick={() => setAway(Math.min(20, away + 1))}
-                      className="w-14 h-7 flex items-center justify-center rounded-t-xl border border-b-0 border-white/12 bg-white/[0.04] text-white/30 hover:bg-white/[0.1] hover:text-white/60 transition-colors"
+                      className="w-14 h-7 flex items-center justify-center rounded-t-xl border border-b-0 border-white/12 bg-white/[0.04] text-white/40 hover:bg-white/[0.1] hover:text-white/70 transition-colors"
                     >
                       <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
@@ -237,7 +237,7 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
                     <button
                       type="button"
                       onClick={() => setAway(Math.max(0, away - 1))}
-                      className="w-14 h-7 flex items-center justify-center rounded-b-xl border border-t-0 border-white/12 bg-white/[0.04] text-white/30 hover:bg-white/[0.1] hover:text-white/60 transition-colors"
+                      className="w-14 h-7 flex items-center justify-center rounded-b-xl border border-t-0 border-white/12 bg-white/[0.04] text-white/40 hover:bg-white/[0.1] hover:text-white/70 transition-colors"
                     >
                       <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
@@ -255,7 +255,7 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
               transition={{ delay: 0.4 }}
               className="relative space-y-3 border-t border-white/8 pt-4"
             >
-              <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest">
+              <p className="text-[11px] font-semibold text-white/45 uppercase tracking-widest">
                 How do you want to submit?
               </p>
               <button
@@ -277,7 +277,7 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/25 transition-colors"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors"
                 />
               )}
             </motion.div>
@@ -310,7 +310,7 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
               )}
             </Button>
             <button
-              className="text-xs text-white/25 hover:text-white/50 transition-colors"
+              className="text-xs text-white/35 hover:text-white/60 transition-colors"
               onClick={onClose}
             >
               Keep editing
