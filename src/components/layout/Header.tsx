@@ -16,7 +16,7 @@ export function Header() {
           <Image
             src="/logo-wordmark.png"
             alt="Meebits Futbol"
-            width={68}
+            width={78}
             height={32}
             priority
             className="h-8 w-auto"
