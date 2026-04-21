@@ -1,107 +1,141 @@
 ================================================================================
   PRE-LAUNCH CHECKLIST — Meebits Futbol Bracket Challenge
-  Created: April 6, 2026
-  Tournament starts: June 11, 2026
+  Last updated: April 21, 2026
+  Tournament starts: June 11, 2026 (12:00 EDT / 16:00 UTC)
+  Production URL:    https://meebits-futbol.vercel.app
 ================================================================================
 
-CRITICAL (must do before launch)
+CRITICAL — must be resolved before accepting real user submissions
 ================================================================================
 
-[ ] Swap local JSON data store for production database
-    - Implement DataStore interface for your DB (Vercel Postgres, Supabase, etc.)
-    - Change import in src/lib/db/index.ts to use new implementation
-    - Local JSON store WILL NOT work on Vercel (read-only filesystem)
+[ ] Swap local JSON data store for a production database
+    - Current: src/lib/db/index.ts re-exports `localStore` from localStore.ts,
+      which writes to <project-root>/data/store.json.
+    - Problem: Vercel's function filesystem is ephemeral — every new
+      deployment wipes the JSON file and every submission is lost.
+    - Fix: Implement the DataStore interface (src/lib/db/types.ts) against
+      a real backend (Vercel Postgres, Neon, Supabase, Upstash, etc.) and
+      change the one import line in src/lib/db/index.ts.
+    - All callers (/api/submit, /api/leaderboard, /api/divisions,
+      /api/cron/update-scores) go through the DataStore interface, so the
+      swap is confined to a single file.
 
-[ ] Proxy Alchemy API key through server-side API route
-    - Currently exposed client-side via NEXT_PUBLIC_ALCHEMY_API_KEY
-    - Move token ID lookups to a server-side API route
+[ ] Set real prize amounts for each division
+    - Current: src/lib/divisions.ts has `prize: 'TBD'` for all four tiers
+      (Gold, Silver, Bronze, Free). This string renders literally on
+      /divisions and in the division cards.
+    - Fix: Update the `prize` field for each entry in the DIVISIONS array,
+      or — if prizes are not finalized — replace "TBD" with a friendlier
+      placeholder like "Prizes announced soon".
 
-[ ] Set all environment variables in Vercel dashboard
-    - NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
-    - NEXT_PUBLIC_NFT_CONTRACT_ADDRESS
-    - NEXT_PUBLIC_ALCHEMY_API_KEY (or server-only once proxied)
-    - NEXT_PUBLIC_APP_URL
+[ ] Proxy the Alchemy API key through a server-side API route
+    - Current: NEXT_PUBLIC_ALCHEMY_API_KEY is exposed to the browser bundle,
+      so anyone can read it out of the JS and use it against our quota.
+    - Fix: Move the getNFTsForOwner call in src/lib/web3/alchemy.ts behind
+      a new /api/alchemy/tokens route. Keep the key server-only.
 
-[ ] Set prize pool amounts for each division
-    - Currently shows "TBD" in src/lib/divisions.ts
-    - Update the `prize` field for each division
+[ ] Resolve playoff placeholder teams in src/lib/tournament/teams.ts
+    - As of today (April 21) the UEFA / Inter-Confederation playoffs are
+      finished. Six team slots currently carry `isPlayoffWinner: true`
+      with placeholder labels — Groups A, B, D, F, I, K.
+    - Fix: Replace the placeholders with the actual playoff winners, drop
+      the isPlayoffWinner flag, and set real flag codes.
 
-[ ] Verify 6 UEFA/Inter-Confederation playoff outcomes
-    - Playoff finals are March 31, 2026 — update placeholder teams in
-      src/lib/tournament/teams.ts once results are confirmed
-    - Update isPlayoffWinner flags and real team data
+[ ] Smoke-test the delegate.xyz v2 integration end-to-end
+    - Use a real pair: cold wallet holds the Meebit Futbol NFTs, hot wallet
+      is delegated via https://delegate.xyz/ (ALL / CONTRACT / ERC721
+      delegation types all need to work).
+    - Sign in with the hot wallet and verify:
+        a) the delegated NFT count appears in useUserDivision
+        b) the welcome modal shows "X owned + Y delegated"
+        c) the user lands in the correct division
+    - Code is live (src/lib/web3/delegateRegistry.ts + useDelegatedBalance.ts)
+      but has never been exercised against the real on-chain registry.
 
-[ ] Test full submission flow end-to-end
-    - Wallet connect -> NFT detection -> bracket building -> submission
-    - Email flow -> bracket building -> submission
-    - Verify token ID locking prevents double-submission
-    - Verify division assignment is correct
+[ ] Confirm the Meebit Futbol contract has live holders on mainnet
+    - Contract: 0x8fBb231840BeDF8a49080Ac3001B9c97BF35f4E9
+    - If the collection is not yet minted, every user lands in the Free
+      tier and the division system is cosmetic only.
+    - If mint is still pending, decide whether to launch anyway with
+      only the Free division active, or delay until holders exist.
 
-[ ] Test on mobile devices
-    - Horizontal bracket scroll on small screens
-    - Welcome modal scroll on short viewports
-    - Group drag-reorder touch interactions
+[ ] Sanity-check the tournament lock date
+    - Hardcoded in src/lib/divisions.ts:
+        TOURNAMENT_LOCK_DATE = new Date('2026-06-11T16:00:00Z');
+    - After this moment, isTournamentLocked() blocks new submissions
+      and division upgrades everywhere. Confirm with the team that
+      noon-EDT on opening day is the intended cutoff.
 
 
-IMPORTANT (should do before launch)
+IMPORTANT — should be resolved before a public launch push
 ================================================================================
 
-[ ] Add rate limiting on API routes
-    - /api/submit — prevent spam submissions
-    - /api/odds — prevent excessive Polymarket calls
-    - /api/divisions — low priority but good practice
+[ ] Add rate limiting on public API routes
+    - /api/submit     — prevent spam submissions
+    - /api/odds       — prevent excessive Polymarket calls
+    - /api/divisions  — low priority but good practice
+    - Recommend Upstash Ratelimit + Vercel Edge Middleware.
 
-[ ] Add error boundaries around key components
-    - BracketView
-    - GroupStage
-    - ThirdPlaceSelector
+[ ] Add React error boundaries around the heavy bracket components
+    - BracketView, GroupStage, ThirdPlaceSelector
+    - Prevents a single render failure from breaking the whole page.
 
-[ ] SEO meta tags on all pages
-    - Open Graph tags for social sharing
-    - Twitter card meta tags
+[ ] SEO / social meta tags
+    - Open Graph + Twitter card tags on every page
     - Page-specific titles and descriptions
+    - Configure in src/app/layout.tsx and per-page `metadata` exports
 
-[ ] OG image generation for share cards
-    - Dynamic image with champion pick and division badge
-    - Used when sharing bracket on social media
+[ ] Dynamic OG share image for /my-brackets/[id]
+    - Render champion + division badge + username via @vercel/og
+    - Used when users share their completed bracket
 
-[ ] Set up custom domain
-    - Currently using meebits-futbol.vercel.app
-    - Configure DNS and Vercel domain settings
+[ ] Analytics
+    - Track: wallet connections, bracket submissions, division distribution,
+      Polymarket API health, cron success/failure
+    - Vercel Web Analytics or PostHog are both easy drop-ins.
 
-[ ] Add analytics
-    - Track bracket submissions, wallet connections, page views
-    - Monitor Polymarket API health
+[ ] Point the real custom domain (meebitsfutbol.com or similar)
+    - Today the app is reachable at https://meebits-futbol.vercel.app
+      (registered as a Project Domain, auto-advances on every deploy).
+    - For marketing a real TLD is probably wanted. Add it in
+      Vercel Project Settings -> Domains and update NEXT_PUBLIC_APP_URL.
 
 
-NICE TO HAVE (post-launch improvements)
+NICE TO HAVE — post-launch improvements
 ================================================================================
 
 [ ] Unit tests for tournament logic
-    - r32Seeding.ts (bracket generation + propagation)
-    - thirdPlace.ts (3rd-place selection)
-    - divisions.ts (division assignment)
-
-[ ] Leaderboard page
-    - Compare submitted brackets against real results
-    - Rankings within each division
-
-[ ] Live scores integration
-    - Once tournament starts (June 11), show real match results
-    - Track bracket accuracy in real-time
+    - lib/tournament/r32Seeding.ts  (bracket generation + propagation)
+    - lib/tournament/thirdPlace.ts  (3rd-place eligibility)
+    - lib/divisions.ts              (tier assignment from NFT count)
 
 [ ] Division upgrade flow
-    - Allow users to buy more NFTs and upgrade division before lock date
-    - UI for "Upgrade Division" button on my-brackets page
+    - /api/submit already returns a 409 with the message "Use the upgrade
+      endpoint to change divisions." — but that endpoint does not exist.
+    - Build: POST /api/submit/upgrade — re-reads NFT count, updates the
+      submission's division, locks any newly counted token IDs.
+    - UI: "Upgrade Division" button on /my-brackets.
 
 [ ] Admin dashboard
-    - View all submissions
-    - Monitor division distribution
-    - Manual token unlocking if needed
+    - View all submissions, monitor division distribution, manual token
+      unlocking if a wallet gets compromised.
 
-[ ] Export/backup submissions
-    - Database backup strategy
-    - Export to CSV for prize distribution
+[ ] Export / backup submissions
+    - Scheduled dump to CSV for prize distribution and disaster recovery.
+
+
+DONE — already landed (do not worry about these)
+================================================================================
+
+[x] Leaderboard page (/leaderboard) with scored entries and division filters
+[x] Daily score-update cron wired up (vercel.json + /api/cron/update-scores)
+[x] Delegate.xyz v2 support (code-complete — still needs smoke test, see above)
+[x] Division system simplified to 4 tiers (Gold / Silver / Bronze / Free)
+[x] Header wordmark logo (replaces square icon + text)
+[x] Custom domain meebits-futbol.vercel.app configured as Project Domain
+[x] All environment variables set in Vercel Production environment
+[x] Flags rendered via <Flag> SVG component (works on Windows Chrome)
+[x] Grey-text readability pass across every page
 
 
 ================================================================================

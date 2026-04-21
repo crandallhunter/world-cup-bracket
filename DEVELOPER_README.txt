@@ -1,7 +1,7 @@
 ================================================================================
   MEEBITS FUTBOL — 2026 FIFA WORLD CUP BRACKET CHALLENGE
   Developer Handover Document
-  Last updated: April 6, 2026
+  Last updated: April 21, 2026
 ================================================================================
 
 1. PROJECT OVERVIEW
@@ -72,11 +72,22 @@ Setup:
 
 Environment Variables (.env.local):
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID   WalletConnect Cloud project ID
-                                         (f92674d8af9f2b951563902a0b08512d)
   NEXT_PUBLIC_NFT_CONTRACT_ADDRESS       ERC-721A contract address
                                          (0x8fBb231840BeDF8a49080Ac3001B9c97BF35f4E9)
   NEXT_PUBLIC_ALCHEMY_API_KEY            Alchemy API key for NFT lookups
+                                         (see "Alchemy API key" gotcha below)
   NEXT_PUBLIC_APP_URL                    Public URL (for share cards / OG)
+
+  Server-only (not exposed to browser):
+  APISPORTS_KEY                          API-Football key for the daily score cron
+  CRON_SECRET                            Shared secret; Vercel Cron sends this in
+                                         the Authorization header to protect the
+                                         /api/cron/update-scores route
+  RAPIDAPI_KEY                           Reserved for future use (API-Football
+                                         via RapidAPI alternate path)
+
+  All six keys are currently set in the Vercel project's Production environment.
+  Run `vercel env pull .env.local --environment=production` to sync locally.
 
 Scripts:
   npm run dev      Start dev server (Turbopack, port 3000)
@@ -336,9 +347,20 @@ The app deploys to Vercel:
   - Or manually: `npx vercel --prod`
   - Environment variables must be set in Vercel dashboard
 
+Custom domain:
+  meebits-futbol.vercel.app is registered as a Project Domain on the
+  `world-cup-bracket` Vercel project. It auto-advances to every new
+  production deployment — no manual `vercel alias set` calls required.
+
+Daily cron:
+  /api/cron/update-scores runs at 15:00 UTC (configured in vercel.json).
+  Protected by CRON_SECRET — Vercel Cron sends this in the Authorization
+  header. Fetches final match scores from API-Football and recomputes
+  bracket points for every submission.
+
 IMPORTANT: The local JSON data store will NOT work on Vercel (serverless
 filesystem is read-only). Swap lib/db/index.ts to use a real database
-(Vercel Postgres, Supabase, etc.) before deploying.
+(Vercel Postgres, Supabase, etc.) before accepting real submissions.
 
 
 9. TYPES REFERENCE
@@ -358,8 +380,14 @@ DB TYPES (src/lib/db/types.ts)
   DataStore          Interface for storage backends
 
 DIVISION TYPES (src/lib/divisions.ts)
-  DivisionId         'diamond' | 'platinum' | 'gold' | 'silver' | 'bronze' | 'open'
+  DivisionId         'gold' | 'silver' | 'bronze' | 'open'
   Division           { id, name, minNFTs, icon, color, bgGradient, prize }
+
+  Tier thresholds (by total eligible NFTs, direct + delegated):
+    Gold    5+
+    Silver  3-4
+    Bronze  1-2
+    Free    0        (id: 'open', name: 'Free' — ID and display name differ)
 
 
 ================================================================================
