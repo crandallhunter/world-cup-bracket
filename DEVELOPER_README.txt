@@ -173,6 +173,7 @@ src/
 │   ├── tournament/
 │   │   ├── teams.ts                48 teams, 12 groups, GROUPS map
 │   │   ├── r32Seeding.ts           R32 bracket structure + FIFA R16 pairings
+│   │   ├── annexC.ts               FIFA Annexe C 495-row lookup (auto-generated)
 │   │   ├── groups.ts               Group standing helpers
 │   │   └── thirdPlace.ts           3rd-place eligibility logic
 │   │
@@ -266,13 +267,16 @@ IDENTITY STORE (identityStore.ts)
   - identity: { type: 'wallet' } | { type: 'email', email: string } | { type: 'explore' }
   - hasSeenWelcome: boolean
 
-R32 SEEDING (r32Seeding.ts)
+R32 SEEDING (r32Seeding.ts + annexC.ts)
   The Round of 32 has 16 matches:
   - 8 FIXED matches (group winners/runners-up vs specific opponents)
-  - 8 VARIABLE matches (3rd-place teams assigned by eligibility)
+  - 8 VARIABLE matches (3rd-place teams assigned by FIFA Annexe C)
 
-  Each variable slot has an eligibility map defining which groups'
-  3rd-place finishers can fill it. Greedy assignment with fallback.
+  Variable slot assignment uses the official FIFA 2026 Annexe C table
+  (495 rows = C(12,8)) encoded in annexC.ts. Given the 8 advancing
+  groups, the table deterministically assigns each group's 3rd-placer
+  to a specific R32 slot. The table is regenerated from the FIFA
+  Regulations PDF via scripts/parse-annex-c.py — do not hand-edit.
 
   R32->R16 propagation uses FIFA's official non-sequential bracket
   pairings via R32_TO_R16 lookup table. R16->QF->SF->F use sequential.

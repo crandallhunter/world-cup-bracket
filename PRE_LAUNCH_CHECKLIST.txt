@@ -136,6 +136,11 @@ DONE — already landed (do not worry about these)
 [x] All environment variables set in Vercel Production environment
 [x] Flags rendered via <Flag> SVG component (works on Windows Chrome)
 [x] Grey-text readability pass across every page
+[x] Third-placed teams R32 assignment — replaced the greedy stand-in with
+    the official FIFA 2026 Annexe C 495-row lookup table, parsed directly
+    from the FIFA Regulations PDF and independently verified (every cell
+    satisfies § 12.6 eligibility; every C(12,8) combination covered once).
+    See src/lib/tournament/annexC.ts and scripts/parse-annex-c.py.
 
 
 ================================================================================
