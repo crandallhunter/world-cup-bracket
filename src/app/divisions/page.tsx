@@ -92,7 +92,7 @@ export default function DivisionsPage() {
       <div className="flex items-center gap-4 text-xs text-white/40">
         <span className="tabular-nums">{totalParticipants} total participant{totalParticipants !== 1 ? 's' : ''}</span>
         <span className="h-3 w-px bg-white/10" />
-        <span>6 divisions</span>
+        <span>{DIVISIONS.length} divisions</span>
       </div>
 
       {/* Division cards */}
