@@ -92,7 +92,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-0">
             {[
               { num: '01', title: 'Rank the Groups', body: 'Rank all 4 teams in each of the 12 groups — 1st through 4th.' },
-              { num: '02', title: 'Pick 3rd Place', body: 'Each group has a third-place finisher — pick the 8 that earn a spot in the knockout round.' },
+              { num: '02', title: 'Pick 8 Third Place Teams', body: 'Each group has a third-place finisher — pick the 8 that earn a spot in the knockout round.' },
               { num: '03', title: 'Build the Bracket', body: 'Pick winners for every knockout match from the Round of 32 all the way to the Final.' },
               { num: '04', title: 'Crown a Champion', body: 'Choose the last team standing and submit your completed bracket.' },
             ].map((step, i, arr) => (
