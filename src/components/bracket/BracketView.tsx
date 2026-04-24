@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBracketStore } from '@/store/bracketStore';
 import { useIdentityStore } from '@/store/identityStore';
@@ -359,6 +360,7 @@ function ChampionBadge({ onReopen }: { onReopen: () => void }) {
 // ─── Bracket View ────────────────────────────────────────────────────────────
 
 export function BracketView() {
+  const router = useRouter();
   const { knockoutBracket, goToStep } = useBracketStore();
   const champion = knockoutBracket.find((m) => m.round === 'F')?.winner;
   const hasChampion = Boolean(champion && champion.id !== '__TBD__');
@@ -367,6 +369,15 @@ export function BracketView() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [submittedDivision, setSubmittedDivision] = useState<DivisionId | null>(null);
   const prevHasChampion = useRef(false);
+
+  // Navigate to /my-brackets after the success modal closes. Kept in a single
+  // handler so any dismissal path (Close button, backdrop click, esc key)
+  // lands in the same place, instead of dropping the user back onto the
+  // (still-editable) bracket builder.
+  const handleSuccessClose = useCallback(() => {
+    setShowSuccess(false);
+    router.push('/my-brackets');
+  }, [router]);
 
   // Refs for auto-scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -511,10 +522,12 @@ export function BracketView() {
         )}
       </AnimatePresence>
 
-      {/* Success modal — shown after submission completes */}
+      {/* Success modal — shown after submission completes.
+          Closing it (button, backdrop, or esc) navigates to /my-brackets
+          so the user can't keep editing their already-submitted bracket. */}
       <SubmitModal
         isOpen={showSuccess}
-        onClose={() => setShowSuccess(false)}
+        onClose={handleSuccessClose}
         divisionId={submittedDivision}
       />
     </div>
