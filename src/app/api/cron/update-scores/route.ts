@@ -1,59 +1,27 @@
+// ─── LOCAL / TESTING ONLY ────────────────────────────────────────────────────
+// Production cron runs as an AWS Lambda (see lambdas/update-scores/index.ts)
+// triggered by an EventBridge schedule. This Next.js route exists only for
+// local development and manual testing of the same business logic.
+//
+// Do NOT rely on this path in production. vercel.json keeps a reference for
+// the Vercel-based dev/preview deployments we still use to share builds
+// with the team, but the authoritative production cron is the Lambda.
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import {
-  API_NAME_TO_TEAM_ID,
-  EMPTY_RESULTS,
-  calculateScore,
-  calculateTiebreaker,
-} from '@/lib/scoring';
-import type { RealResults } from '@/lib/scoring';
-import type { SubmissionScore } from '@/lib/db/types';
+import { runUpdateScores, UpdateScoresError } from '@/lib/cron/updateScores';
 
-const API_BASE = 'https://v3.football.api-sports.io';
-const API_KEY = process.env.APISPORTS_KEY ?? '';
-const LEAGUE_ID = 1; // FIFA World Cup
-const SEASON = 2026;
-
-// Vercel cron secret — prevents unauthorized calls
 const CRON_SECRET = process.env.CRON_SECRET;
-
-interface ApiFixture {
-  teams: {
-    home: { name: string; winner: boolean | null };
-    away: { name: string; winner: boolean | null };
-  };
-  goals: { home: number | null; away: number | null };
-  league: { round: string };
-  fixture: { date: string; status: { short: string } };
-}
+const API_KEY = process.env.APISPORTS_KEY ?? '';
 
 /**
- * Parse the API round string into our round format.
- * API returns: "Group Stage - 1", "Round of 32", "Round of 16",
- * "Quarter-finals", "Semi-finals", "Final", "3rd Place"
- */
-function parseRound(apiRound: string): string | null {
-  if (apiRound.startsWith('Group')) return 'GROUP';
-  if (apiRound === 'Round of 32') return 'R32';
-  if (apiRound === 'Round of 16') return 'R16';
-  if (apiRound === 'Quarter-finals') return 'QF';
-  if (apiRound === 'Semi-finals') return 'SF';
-  if (apiRound === '3rd Place') return '3P';
-  if (apiRound === 'Final') return 'F';
-  return null;
-}
-
-function resolveTeamId(apiName: string): string | null {
-  return API_NAME_TO_TEAM_ID[apiName] ?? null;
-}
-
-/**
- * GET /api/cron/update-scores
- * Called daily at 10 AM EST by Vercel Cron.
- * Fetches real match results and recalculates all submission scores.
+ * GET /api/cron/update-scores — local / testing wrapper.
+ * Delegates all business logic to `runUpdateScores`, which the production
+ * Lambda handler also calls. Keep this file thin.
  */
 export async function GET(req: NextRequest) {
-  // Verify cron secret if configured
+  // Verify cron secret if configured (matches the Vercel Cron calling convention)
   if (CRON_SECRET) {
     const auth = req.headers.get('authorization');
     if (auth !== `Bearer ${CRON_SECRET}`) {
@@ -61,119 +29,14 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  if (!API_KEY) {
-    return NextResponse.json({ error: 'APISPORTS_KEY not configured' }, { status: 500 });
-  }
-
   try {
-    // ── 1. Fetch completed fixtures from API-Football ──
-    const res = await fetch(
-      `${API_BASE}/fixtures?league=${LEAGUE_ID}&season=${SEASON}&status=FT-AET-PEN`,
-      { headers: { 'x-apisports-key': API_KEY } }
-    );
-
-    if (!res.ok) {
-      console.error('[Cron] API-Football error:', res.status);
-      return NextResponse.json({ error: 'API fetch failed' }, { status: 502 });
-    }
-
-    const data = await res.json();
-    const fixtures: ApiFixture[] = data.response ?? [];
-
-    // ── 2. Build aggregate round results from fixtures for scoring ──
-    const results: RealResults = { ...EMPTY_RESULTS, updatedAt: Date.now() };
-    const r32Set = new Set<string>();
-    const r16Set = new Set<string>();
-    const qfSet = new Set<string>();
-    const sfSet = new Set<string>();
-    const finalSet = new Set<string>();
-    let actualFinalTotalGoals: number | null = null;
-
-    for (const fix of fixtures) {
-      const round = parseRound(fix.league.round);
-      if (!round) continue;
-
-      const homeId = resolveTeamId(fix.teams.home.name);
-      const awayId = resolveTeamId(fix.teams.away.name);
-      if (!homeId || !awayId) continue;
-
-      // Group stage results don't affect knockout scoring directly —
-      // advancement is inferred from the knockout fixtures themselves.
-      if (round === 'GROUP') continue;
-
-      const winnerId = fix.teams.home.winner ? homeId
-        : fix.teams.away.winner ? awayId
-        : null;
-
-      // For knockout rounds, the teams playing in that round advanced to it
-      if (round === 'R32') {
-        r32Set.add(homeId);
-        r32Set.add(awayId);
-        // Winner advances to R16
-        if (winnerId) r16Set.add(winnerId);
-      }
-      if (round === 'R16') {
-        // Teams in R16 already counted — winner advances to QF
-        if (winnerId) qfSet.add(winnerId);
-      }
-      if (round === 'QF') {
-        if (winnerId) sfSet.add(winnerId);
-      }
-      if (round === 'SF') {
-        if (winnerId) finalSet.add(winnerId);
-      }
-      if (round === 'F') {
-        if (winnerId) results.champion = winnerId;
-        // Total goals for tiebreaker
-        if (fix.goals.home !== null && fix.goals.away !== null) {
-          actualFinalTotalGoals = fix.goals.home + fix.goals.away;
-        }
-      }
-    }
-
-    results.r32Teams = [...r32Set];
-    results.r16Teams = [...r16Set];
-    results.qfTeams = [...qfSet];
-    results.sfTeams = [...sfSet];
-    results.finalTeams = [...finalSet];
-
-    // ── 3. Save aggregate results ──
-    await db.saveResults(results);
-
-    // ── 4. Recalculate all submission scores ──
-    const submissions = await db.getAllSubmissions();
-    const scores: SubmissionScore[] = submissions.map((sub) => {
-      const score = calculateScore(sub.knockoutPicks, sub.champion, results);
-      const tiebreaker = calculateTiebreaker(sub.finalScore, actualFinalTotalGoals);
-
-      return {
-        submissionId: sub.id,
-        identifier: sub.identifier,
-        divisionId: sub.divisionId,
-        score,
-        tiebreaker,
-        champion: sub.champion,
-        updatedAt: Date.now(),
-      };
-    });
-
-    await db.saveScores(scores);
-
-    return NextResponse.json({
-      success: true,
-      fixturesProcessed: fixtures.length,
-      submissionsScored: scores.length,
-      results: {
-        r32: results.r32Teams.length,
-        r16: results.r16Teams.length,
-        qf: results.qfTeams.length,
-        sf: results.sfTeams.length,
-        final: results.finalTeams.length,
-        champion: results.champion,
-      },
-    });
+    const result = await runUpdateScores({ apiKey: API_KEY, db });
+    return NextResponse.json({ success: true, ...result });
   } catch (err) {
-    console.error('[Cron] Error:', err);
+    if (err instanceof UpdateScoresError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    console.error('[Cron route] Error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

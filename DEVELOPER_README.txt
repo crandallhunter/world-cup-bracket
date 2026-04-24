@@ -52,8 +52,16 @@ External APIs
 
 Data Layer
   - Pluggable DataStore interface (src/lib/db/types.ts)
-  - Local JSON file store for development (src/lib/db/localStore.ts)
-  - Data stored at <project-root>/data/store.json
+  - Drizzle ORM + postgres-js against a PostgreSQL database
+  - Dev: Supabase Postgres (database only; no Auth/Storage/Functions)
+  - Prod: AWS RDS Postgres or Aurora Postgres
+  - Schema: src/lib/db/schema.ts  (source of truth)
+  - Migrations: ./drizzle/*.sql (committed; regenerated via drizzle-kit)
+
+Production cron
+  - AWS Lambda at lambdas/update-scores/index.ts, triggered by EventBridge
+  - Shared business logic at src/lib/cron/updateScores.ts
+  - The Next.js route at /api/cron/update-scores is LOCAL / TESTING ONLY
 
 
 3. GETTING STARTED
@@ -62,13 +70,33 @@ Data Layer
 Prerequisites:
   - Node.js 20.x (use nvm: `nvm use 20`)
   - npm
+  - A Supabase project (PostgreSQL connection string) for development
 
 Setup:
   1. git clone https://github.com/crandallhunter/world-cup-bracket.git
   2. cd world-cup-bracket
   3. cp .env.example .env.local       # Fill in your keys (see below)
   4. npm install
-  5. npm run dev                       # http://localhost:3000
+  5. npm run db:migrate                # Apply migrations to your dev DB
+  6. npm run dev                       # http://localhost:3000
+
+Provisioning a Supabase dev database:
+  1. Sign in at https://supabase.com/dashboard and create a new project.
+  2. Project Settings → Database → Connection string → "URI".
+     Copy the connection string. It looks like:
+       postgres://postgres:<password>@db.<hash>.supabase.co:5432/postgres
+  3. Paste into .env.local as DATABASE_URL.
+  4. Run `npm run db:migrate` to create the tables.
+
+  Per AGENTS.md, Supabase is for DB only. Do NOT use Supabase Auth,
+  Storage, or Functions. The schema is designed to migrate cleanly
+  from Supabase Postgres to AWS RDS / Aurora Postgres for production.
+
+Database commands:
+  npm run db:generate  Regenerate the SQL migration from schema.ts
+  npm run db:migrate   Apply outstanding migrations
+  npm run db:push      Push schema directly (dev only — bypasses migrations)
+  npm run db:studio    Open Drizzle Studio (web UI over your DB)
 
 Environment Variables (.env.local):
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID   WalletConnect Cloud project ID
@@ -79,10 +107,12 @@ Environment Variables (.env.local):
   NEXT_PUBLIC_APP_URL                    Public URL (for share cards / OG)
 
   Server-only (not exposed to browser):
+  DATABASE_URL                           PostgreSQL connection string
+                                         (Supabase for dev; RDS / Aurora for prod)
   APISPORTS_KEY                          API-Football key for the daily score cron
-  CRON_SECRET                            Shared secret; Vercel Cron sends this in
-                                         the Authorization header to protect the
-                                         /api/cron/update-scores route
+  CRON_SECRET                            Shared secret for the local / testing
+                                         Next.js cron route. Production Lambda
+                                         uses EventBridge + IAM, not this secret.
   RAPIDAPI_KEY                           Reserved for future use (API-Football
                                          via RapidAPI alternate path)
 
@@ -195,8 +225,13 @@ src/
 │   │
 │   ├── db/
 │   │   ├── types.ts                DataStore interface, Submission, UsedToken
-│   │   ├── localStore.ts           Local JSON file implementation (dev only)
-│   │   └── index.ts                DB entry point (change import to swap backends)
+│   │   ├── schema.ts               Drizzle Postgres schema (source of truth)
+│   │   ├── client.ts               postgres-js + Drizzle singleton
+│   │   ├── drizzleStore.ts         DataStore impl against Postgres
+│   │   └── index.ts                DB entry point (re-exports drizzleStore)
+│   │
+│   ├── cron/
+│   │   └── updateScores.ts         Pure score-refresh logic (runtime-agnostic)
 │   │
 │   └── utils/
 │       └── cn.ts                   clsx + tailwind-merge helper
@@ -297,9 +332,19 @@ SUBMISSION API (api/submit/route.ts)
   GET: Fetch by ?identifier= (check exists) or ?id= (full submission).
 
 DATA STORE (lib/db/)
-  Pluggable DataStore interface. localStore.ts writes to data/store.json.
-  Swap for production DB by changing the import in lib/db/index.ts.
-  NOTE: Local JSON won't work on Vercel (read-only filesystem).
+  Pluggable DataStore interface. Active implementation is drizzleStore.ts
+  which runs against PostgreSQL via Drizzle ORM + postgres-js.
+
+  Schema lives in schema.ts and is the source of truth. Migrations are
+  auto-generated via `npm run db:generate` and applied with
+  `npm run db:migrate`. Migration files go in ./drizzle and are committed.
+
+  Dev: Supabase Postgres (database only — no Auth/Storage/Functions).
+  Prod: AWS RDS Postgres or Aurora Postgres.
+
+  The bracket body is stored as JSONB (see SubmissionBracketJson).
+  `used_tokens` is its own table with a unique (contract, token_id)
+  constraint to prevent the same NFT being used twice.
 
 ODDS INTEGRATION
   Server route (/api/odds) fetches from Polymarket Gamma API:
@@ -357,14 +402,15 @@ Custom domain:
   production deployment — no manual `vercel alias set` calls required.
 
 Daily cron:
-  /api/cron/update-scores runs at 15:00 UTC (configured in vercel.json).
-  Protected by CRON_SECRET — Vercel Cron sends this in the Authorization
-  header. Fetches final match scores from API-Football and recomputes
-  bracket points for every submission.
+  Production: AWS Lambda at lambdas/update-scores/index.ts, triggered
+  by an EventBridge schedule (cron(0 15 * * ? *) — daily 15:00 UTC).
+  Both Lambda and the Next.js route below call the same shared logic
+  at src/lib/cron/updateScores.ts.
 
-IMPORTANT: The local JSON data store will NOT work on Vercel (serverless
-filesystem is read-only). Swap lib/db/index.ts to use a real database
-(Vercel Postgres, Supabase, etc.) before accepting real submissions.
+  Local/testing: Next.js route at /api/cron/update-scores still exists,
+  protected by CRON_SECRET. vercel.json keeps a schedule for
+  Vercel-preview deployments the team shares for review, but that is
+  NOT the authoritative production cron.
 
 
 9. TYPES REFERENCE

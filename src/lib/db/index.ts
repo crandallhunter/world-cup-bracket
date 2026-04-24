@@ -1,11 +1,8 @@
 // ─── Data store entry point ──────────────────────────────────────────────────
-// Import the active data store implementation here.
-// To swap backends, just change this import to point at your production store.
-//
-// Example for production:
-//   export { postgresStore as db } from './postgresStore';
+// The rest of the app imports `db` from here — implementation-agnostic.
+// Today this is Drizzle + Postgres (Supabase for dev, AWS RDS for prod).
 
-export { localStore as db } from './localStore';
+export { drizzleStore as db } from './drizzleStore';
 
 // Re-export types for convenience
 export type { DataStore, Submission, UsedToken, IdentityType, SubmissionScore } from './types';

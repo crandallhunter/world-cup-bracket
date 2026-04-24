@@ -8,17 +8,18 @@
 CRITICAL — must be resolved before accepting real user submissions
 ================================================================================
 
-[ ] Swap local JSON data store for a production database
-    - Current: src/lib/db/index.ts re-exports `localStore` from localStore.ts,
-      which writes to <project-root>/data/store.json.
-    - Problem: Vercel's function filesystem is ephemeral — every new
-      deployment wipes the JSON file and every submission is lost.
-    - Fix: Implement the DataStore interface (src/lib/db/types.ts) against
-      a real backend (Vercel Postgres, Neon, Supabase, Upstash, etc.) and
-      change the one import line in src/lib/db/index.ts.
-    - All callers (/api/submit, /api/leaderboard, /api/divisions,
-      /api/cron/update-scores) go through the DataStore interface, so the
-      swap is confined to a single file.
+[ ] Provision the Supabase Postgres dev database (REQUIRED to run submit)
+    - Drizzle schema, migrations, and DataStore implementation are all
+      in place. The app just needs a DATABASE_URL to point at.
+    - Steps:
+        1. Create a Supabase project at https://supabase.com/dashboard.
+        2. Project Settings → Database → Connection string → "URI".
+        3. Paste the URI into .env.local as DATABASE_URL=…
+        4. Run `npm run db:migrate` to create the tables.
+        5. Submit a test bracket end-to-end.
+    - Per AGENTS.md, Supabase is for DB only (no Auth/Storage/Functions).
+    - The same schema and migrations will apply to AWS RDS / Aurora
+      Postgres in production — swap DATABASE_URL, re-run migrations.
 
 [ ] Set real prize amounts for each division
     - Current: src/lib/divisions.ts has `prize: 'TBD'` for all four tiers
@@ -141,6 +142,14 @@ DONE — already landed (do not worry about these)
     from the FIFA Regulations PDF and independently verified (every cell
     satisfies § 12.6 eligibility; every C(12,8) combination covered once).
     See src/lib/tournament/annexC.ts and scripts/parse-annex-c.py.
+[x] Drizzle ORM + PostgreSQL data layer — replaced localStore.ts with
+    drizzleStore.ts running against Postgres (Supabase for dev,
+    RDS/Aurora for prod). Schema in src/lib/db/schema.ts, migrations
+    in ./drizzle. Still needs a real DATABASE_URL wired up before the
+    submit flow works end-to-end (see CRITICAL section).
+[x] Cron business logic extracted — shared src/lib/cron/updateScores.ts
+    is called from both the local Next.js route (testing only) and the
+    production AWS Lambda at lambdas/update-scores/index.ts.
 
 
 ================================================================================
