@@ -8,6 +8,7 @@ import { Flag } from '@/components/ui/Flag';
 import { getDivisionById } from '@/lib/divisions';
 import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { Spinner } from '@/components/ui/Spinner';
+import { getMatchesByRound } from '@/lib/tournament/r32Seeding';
 import type { KnockoutMatch, GroupStanding, Team, FinalScore } from '@/types/tournament';
 import type { DivisionId } from '@/lib/divisions';
 
@@ -70,7 +71,13 @@ function KnockoutSection({ picks }: { picks: KnockoutMatch[] }) {
     <div className="overflow-x-auto -mx-4 px-4 pb-2">
       <div className="flex gap-4 min-w-max">
         {ROUND_ORDER.map((round) => {
-          const matches = picks.filter((m) => m.round === round).sort((a, b) => a.position - b.position);
+          // Use the FIFA-aware order helper instead of a naïve position sort.
+          // R32 uses non-sequential pairings into R16 (e.g. pos 3 + pos 6 →
+          // R16_M1), so we have to reorder R32 visually so each adjacent pair
+          // sits next to the R16 match it feeds. R16/QF/SF/F use sequential
+          // pairing, which position order already matches — the helper
+          // returns them in that order.
+          const matches = getMatchesByRound(picks, round as KnockoutMatch['round']);
           if (!matches.length) return null;
           return (
             <div key={round} className="flex flex-col gap-2">
