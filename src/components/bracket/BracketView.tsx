@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBracketStore } from '@/store/bracketStore';
 import { useIdentityStore } from '@/store/identityStore';
@@ -361,6 +362,7 @@ function ChampionBadge({ onReopen }: { onReopen: () => void }) {
 
 export function BracketView() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { knockoutBracket, goToStep } = useBracketStore();
   const champion = knockoutBracket.find((m) => m.round === 'F')?.winner;
   const hasChampion = Boolean(champion && champion.id !== '__TBD__');
@@ -517,6 +519,10 @@ export function BracketView() {
             onSubmitted={(divisionId) => {
               setSubmittedDivision(divisionId);
               setShowSuccess(true);
+              // Bust the cached "has this user submitted?" lookup so the
+              // Header / Home / Divisions pages immediately flip to the
+              // post-submission copy on the next render.
+              queryClient.invalidateQueries({ queryKey: ['submission'] });
             }}
           />
         )}

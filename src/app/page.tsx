@@ -1,8 +1,13 @@
+'use client';
+
 import Link from 'next/link';
 import { TopContenders } from '@/components/odds/TopContenders';
 import { GroupOddsGrid } from '@/components/odds/GroupOddsGrid';
+import { useHasSubmitted } from '@/hooks/useHasSubmitted';
 
 export default function HomePage() {
+  const { hasSubmitted } = useHasSubmitted();
+
   return (
     <div className="bg-black text-white overflow-hidden">
 
@@ -33,13 +38,15 @@ export default function HomePage() {
           {/* Subtext + CTA */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-14">
             <p className="text-white/50 text-base max-w-sm leading-relaxed">
-              Build your full 2026 World Cup bracket — from group stage to the Final.
+              {hasSubmitted
+                ? 'Your 2026 World Cup bracket is locked in. Watch it play out from group stage to the Final.'
+                : 'Build your full 2026 World Cup bracket — from group stage to the Final.'}
             </p>
             <Link
-              href="/bracket"
+              href={hasSubmitted ? '/my-brackets' : '/bracket'}
               className="shrink-0 inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white hover:bg-white/90 text-black font-bold text-sm transition-colors"
             >
-              Build Your Bracket →
+              {hasSubmitted ? 'View My Bracket →' : 'Build Your Bracket →'}
             </Link>
           </div>
 

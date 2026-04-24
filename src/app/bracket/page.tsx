@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GroupStage } from '@/components/groups/GroupStage';
 import { ThirdPlaceSelector } from '@/components/bracket/ThirdPlaceSelector';
 import { BracketView } from '@/components/bracket/BracketView';
 import { StageIntroModal } from '@/components/ui/StageIntroModal';
 import { WelcomeModal } from '@/components/welcome/WelcomeModal';
-import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { useBracketStore } from '@/store/bracketStore';
+// NB: `Button` import removed — the "Build Another Bracket" CTA was deleted
+// now that we redirect already-submitted users to /my-brackets.
 import { useIdentityStore } from '@/store/identityStore';
+import { useHasSubmitted } from '@/hooks/useHasSubmitted';
 import { cn } from '@/lib/utils/cn';
 import type { BracketStep } from '@/types/tournament';
 
@@ -82,11 +86,6 @@ function markIntroSeen(step: string) {
   sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
 }
 
-function clearSeenIntros() {
-  if (typeof window === 'undefined') return;
-  sessionStorage.removeItem(SEEN_KEY);
-}
-
 const stepIndex = (step: BracketStep) => STEPS.findIndex((s) => s.id === step);
 
 const slideVariants = {
@@ -96,8 +95,10 @@ const slideVariants = {
 };
 
 export default function BracketPage() {
+  const router = useRouter();
   const { currentStep, goToStep } = useBracketStore();
   const { hasSeenWelcome, setIdentity } = useIdentityStore();
+  const { hasSubmitted, isLoading: isCheckingSubmission } = useHasSubmitted();
   const [prevStepIdx, setPrevStepIdx] = useState(0);
   const [introStep, setIntroStep] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -110,6 +111,15 @@ export default function BracketPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Redirect already-submitted users to /my-brackets so they can't
+  // accidentally start editing a fresh bracket.
+  useEffect(() => {
+    if (!mounted) return;
+    if (hasSubmitted) {
+      router.replace('/my-brackets');
+    }
+  }, [mounted, hasSubmitted, router]);
 
   // Show welcome modal on first visit, or stage intro if welcome already seen
   useEffect(() => {
@@ -162,6 +172,17 @@ export default function BracketPage() {
   }
 
   const intro = introStep ? STAGE_INTROS[introStep] : null;
+
+  // Show a loading state while we (a) hydrate and (b) check whether the
+  // user has already submitted. Prevents a flash of the bracket builder
+  // before the redirect below kicks in.
+  if (!mounted || isCheckingSubmission || hasSubmitted) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Spinner className="w-8 h-8 text-accent" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
@@ -228,10 +249,9 @@ export default function BracketPage() {
             <div className="text-center py-16 space-y-4">
               <div className="text-5xl">🎉</div>
               <h2 className="text-2xl font-bold">Bracket Submitted!</h2>
-              <p className="text-white/50">Check your submission in My Bracket.</p>
-              <Button variant="primary" onClick={() => { clearSeenIntros(); useBracketStore.getState().resetBracket(); navigateTo('GROUPS'); }}>
-                Build Another Bracket
-              </Button>
+              <p className="text-white/50">
+                Redirecting you to your bracket…
+              </p>
             </div>
           )}
         </motion.div>

@@ -5,9 +5,11 @@ import Image from 'next/image';
 import { WalletButton } from '@/components/wallet/WalletButton';
 import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { useUserDivision } from '@/lib/web3/hooks/useUserDivision';
+import { useHasSubmitted } from '@/hooks/useHasSubmitted';
 
 export function Header() {
   const { division, isConnected } = useUserDivision();
+  const { hasSubmitted } = useHasSubmitted();
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/6 bg-black/90 backdrop-blur-md">
@@ -24,9 +26,11 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-1 text-xs">
-          <Link href="/bracket" className="px-3 py-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors">
-            Build Bracket
-          </Link>
+          {!hasSubmitted && (
+            <Link href="/bracket" className="px-3 py-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors">
+              Build Bracket
+            </Link>
+          )}
           <Link href="/leaderboard" className="px-3 py-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors">
             Leaderboard
           </Link>

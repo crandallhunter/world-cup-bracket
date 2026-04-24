@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { DIVISIONS, requirementText } from '@/lib/divisions';
 import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { useUserDivision } from '@/lib/web3/hooks/useUserDivision';
+import { useHasSubmitted } from '@/hooks/useHasSubmitted';
 import { cn } from '@/lib/utils/cn';
 import type { DivisionId } from '@/lib/divisions';
 import Link from 'next/link';
@@ -52,6 +53,7 @@ export default function DivisionsPage() {
   });
   const [totalParticipants, setTotalParticipants] = useState(0);
   const { division: userDivision, futbol, meebit, isConnected } = useUserDivision();
+  const { hasSubmitted } = useHasSubmitted();
 
   useEffect(() => {
     fetch('/api/divisions')
@@ -100,10 +102,10 @@ export default function DivisionsPage() {
             </div>
           </div>
           <Link
-            href="/bracket"
+            href={hasSubmitted ? '/my-brackets' : '/bracket'}
             className="px-4 py-2 rounded-lg bg-white hover:bg-white/85 text-black text-sm font-semibold transition-colors"
           >
-            Build Bracket
+            {hasSubmitted ? 'View My Bracket' : 'Build Bracket'}
           </Link>
         </motion.div>
       )}
