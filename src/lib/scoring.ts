@@ -81,11 +81,6 @@ export const API_NAME_TO_TEAM_ID: Record<string, string> = {
   'Croatia': 'CRO',
   'Panama': 'PAN',
   'Ghana': 'GHA',
-  // Playoff placeholders — will be updated once playoffs resolve
-  'Wales': 'WAL',
-  'Peru': 'PER',
-  'Ukraine': 'UKR',
-  'Iceland': 'ISL',
 };
 
 // ─── Real tournament results structure ──────────────────────────────────────

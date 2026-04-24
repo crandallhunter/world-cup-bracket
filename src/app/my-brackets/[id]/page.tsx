@@ -32,36 +32,45 @@ const ROUND_LABELS: Record<string, string> = {
 };
 const ROUND_ORDER = ['R32', 'R16', 'QF', 'SF', 'F'];
 
+// Hoisted out of ReadOnlyMatch: React complains when a component is
+// defined inside another render function because every parent render
+// creates a fresh component identity, breaking reconciliation.
+function ReadOnlyTeamRow({
+  team,
+  isWinner,
+}: {
+  team: Team | undefined;
+  isWinner: boolean;
+}) {
+  if (!team) {
+    return (
+      <div className="flex items-center gap-2 px-2.5 py-1.5">
+        <span className="text-sm w-5 text-center text-white/25">—</span>
+        <span className="text-xs text-white/30 italic">TBD</span>
+      </div>
+    );
+  }
+  const name = team.isPlayoffWinner ? team.placeholderLabel : team.name;
+  return (
+    <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded ${isWinner ? 'bg-white/8' : ''}`}>
+      <Flag flagCode={team.flagCode} alt={team.name} size={16} />
+      <span className={`text-xs truncate max-w-[80px] ${isWinner ? 'text-white font-semibold' : 'text-white/45'}`}>
+        {name}
+      </span>
+      {isWinner && <span className="ml-auto text-[10px] text-white/40">✓</span>}
+    </div>
+  );
+}
+
 function ReadOnlyMatch({ match }: { match: KnockoutMatch }) {
   const home = match.homeTeam;
   const away = match.awayTeam;
 
-  function TeamRow({ team, isWinner }: { team: typeof home; isWinner: boolean }) {
-    if (!team) {
-      return (
-        <div className="flex items-center gap-2 px-2.5 py-1.5">
-          <span className="text-sm w-5 text-center text-white/25">—</span>
-          <span className="text-xs text-white/30 italic">TBD</span>
-        </div>
-      );
-    }
-    const name = team.isPlayoffWinner ? team.placeholderLabel : team.name;
-    return (
-      <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded ${isWinner ? 'bg-white/8' : ''}`}>
-        <Flag flagCode={team.flagCode} alt={team.name} size={16} />
-        <span className={`text-xs truncate max-w-[80px] ${isWinner ? 'text-white font-semibold' : 'text-white/45'}`}>
-          {name}
-        </span>
-        {isWinner && <span className="ml-auto text-[10px] text-white/40">✓</span>}
-      </div>
-    );
-  }
-
   return (
     <div className="border border-white/8 rounded-lg overflow-hidden bg-surface-2 min-w-[120px]">
-      <TeamRow team={home} isWinner={match.winner?.id === home?.id} />
+      <ReadOnlyTeamRow team={home} isWinner={match.winner?.id === home?.id} />
       <div className="h-px bg-white/6" />
-      <TeamRow team={away} isWinner={match.winner?.id === away?.id} />
+      <ReadOnlyTeamRow team={away} isWinner={match.winner?.id === away?.id} />
     </div>
   );
 }

@@ -4,6 +4,15 @@ import type { DivisionId } from '@/lib/divisions';
 import type { ScoreBreakdown } from '@/lib/scoring';
 import type { SubmissionScore } from '@/lib/db/types';
 
+// NOTE (pre-launch, see PRE_LAUNCH_CHECKLIST): this route returns the
+// raw identifier (wallet address or email) on each leaderboard row.
+// Wallet addresses are public on-chain data, but email plaintext should
+// be redacted before launch. The frontend already client-side-truncates
+// emails for display, but the raw value still reaches the browser via
+// the JSON response. Proper fix (owned by the tech lead): add an
+// opaque `ownerKey` hash of the identifier so the "You" highlight can
+// still match, and strip the raw email from the response.
+
 /**
  * GET /api/leaderboard
  * Returns the leaderboard for the rendering page.

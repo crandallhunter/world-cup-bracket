@@ -21,7 +21,8 @@ const API_KEY = process.env.APISPORTS_KEY ?? '';
  * Lambda handler also calls. Keep this file thin.
  */
 export async function GET(req: NextRequest) {
-  // Verify cron secret if configured (matches the Vercel Cron calling convention)
+  // Verify cron secret if configured (simple Bearer auth for local / testing
+  // only — the production Lambda handler doesn't go through this route at all).
   if (CRON_SECRET) {
     const auth = req.headers.get('authorization');
     if (auth !== `Bearer ${CRON_SECRET}`) {

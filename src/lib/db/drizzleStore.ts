@@ -1,13 +1,13 @@
 // ─── Drizzle + Postgres implementation of DataStore ──────────────────────────
-// Replaces localStore.ts. Works against any Postgres (Supabase for dev,
-// AWS RDS / Aurora for prod). Schema is defined in ./schema.ts.
+// Active data-access implementation. Works against any Postgres
+// (Supabase for dev, AWS RDS / Aurora for prod). Schema is defined in
+// ./schema.ts.
 //
 // Invariants the caller relies on:
-//   - createSubmission + lockTokens are a unit. We run them in one
-//     transaction so a partial write can't leave tokens locked against
-//     a non-existent submission.
 //   - getSubmissionByIdentity normalizes the identifier to lowercase
 //     (matches how we store it) so wallet-address case doesn't matter.
+//   - saveScores is a replace-all: it truncates submission_scores and
+//     re-inserts, so stale rows from deleted submissions can't linger.
 
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { dbClient } from './client';
@@ -18,12 +18,7 @@ import {
   tournamentResults,
   type SubmissionBracketJson,
 } from './schema';
-import type {
-  DataStore,
-  Submission,
-  UsedToken,
-  SubmissionScore,
-} from './types';
+import type { DataStore, Submission, SubmissionScore } from './types';
 import type { DivisionId } from '@/lib/divisions';
 import type { RealResults } from '@/lib/scoring';
 
@@ -201,11 +196,11 @@ export const drizzleStore: DataStore = {
   },
 
   async getScores() {
-    // Tie-breaking order matches the old localStore implementation:
+    // Tie-breaking order:
     //   1. total DESC
     //   2. tiebreaker ASC (smaller = closer to actual final score)
     //   3. Postgres ASC puts NULL last by default, which is what we want
-    //      (a scored tiebreaker beats an absent one)
+    //      (a scored tiebreaker beats an absent one).
     const rows = await dbClient
       .select()
       .from(submissionScores)

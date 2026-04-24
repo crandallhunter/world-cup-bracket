@@ -140,7 +140,7 @@ export default function HomePage() {
             What are the odds?
           </h2>
           <p className="text-white/50 text-base max-w-lg">
-            Live Polymarket prediction markets — see every team's chance of lifting the trophy, right as the market sees it.
+            Live Polymarket prediction markets — see every team&apos;s chance of lifting the trophy, right as the market sees it.
           </p>
         </div>
       </section>

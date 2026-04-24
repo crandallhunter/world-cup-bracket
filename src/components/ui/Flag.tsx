@@ -45,6 +45,11 @@ export function Flag({ flagCode, alt = '', className, size = 20 }: FlagProps) {
   const src = `https://flagcdn.com/${flagCode}.svg`;
 
   return (
+    // Plain <img> here is intentional — these are tiny SVGs served by
+    // flagcdn.com with aggressive CDN caching, and Next's <Image>
+    // optimizer would add a runtime hop + require a `remotePatterns`
+    // entry in next.config.ts for essentially zero benefit at this size.
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}

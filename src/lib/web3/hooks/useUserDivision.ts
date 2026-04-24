@@ -26,12 +26,6 @@ export function useUserDivision(): {
   holdings: NFTHoldings;
   futbol: { direct: number; delegated: number; vaults: DelegatedVault[] };
   meebit: { direct: number; delegated: number; vaults: DelegatedVault[] };
-  /** @deprecated Use `holdings.futbolCount`. Kept for UI that hasn't been refactored yet. */
-  directBalance: number;
-  /** @deprecated Use per-collection delegated counts. */
-  delegatedBalance: number;
-  /** @deprecated Use per-collection vaults. */
-  delegatedVaults: DelegatedVault[];
   isConnected: boolean;
   isLoading: boolean;
   address: string | undefined;
@@ -59,9 +53,6 @@ export function useUserDivision(): {
       holdings: { futbolCount: 0, meebitCount: 0 },
       futbol: { direct: 0, delegated: 0, vaults: [] },
       meebit: { direct: 0, delegated: 0, vaults: [] },
-      directBalance: 0,
-      delegatedBalance: 0,
-      delegatedVaults: [],
       isConnected: false,
       isLoading: false,
       address: undefined,
@@ -81,9 +72,6 @@ export function useUserDivision(): {
     holdings,
     futbol: { direct: futbolDirect, delegated: futbolDelegated, vaults: futbolVaults },
     meebit: { direct: meebitDirect, delegated: meebitDelegated, vaults: meebitVaults },
-    directBalance: holdings.futbolCount, // deprecated — keep for old callers
-    delegatedBalance: futbolDelegated + meebitDelegated,
-    delegatedVaults: [...futbolVaults, ...meebitVaults],
     isConnected: true,
     isLoading:
       isFutbolLoading ||

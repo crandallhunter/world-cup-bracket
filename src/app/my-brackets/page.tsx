@@ -96,7 +96,7 @@ export default function MyBracketPage() {
         <div className="flex flex-col items-center gap-6 py-16 text-center border border-white/8 rounded-2xl bg-white/[0.02]">
           <div className="text-4xl">⚽</div>
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold">You haven't submitted a bracket yet</h3>
+            <h3 className="text-lg font-semibold">You haven&apos;t submitted a bracket yet</h3>
             <p className="text-text-secondary text-sm max-w-xs">
               Build your bracket, pick your champion, and compete in the{' '}
               {division ? (

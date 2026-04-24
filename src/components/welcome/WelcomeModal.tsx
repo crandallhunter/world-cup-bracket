@@ -254,7 +254,7 @@ function EmailPhase({
       </div>
 
       <p className="text-[11px] text-white/35 text-center mt-4 leading-relaxed">
-        Your email is only used to identify your bracket submission. We won't spam you.
+        Your email is only used to identify your bracket submission. We won&apos;t spam you.
       </p>
     </motion.div>
   );

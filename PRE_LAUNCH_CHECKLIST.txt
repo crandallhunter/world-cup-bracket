@@ -1,6 +1,6 @@
 ================================================================================
   PRE-LAUNCH CHECKLIST — Meebits Futbol Bracket Challenge
-  Last updated: April 21, 2026
+  Last updated: April 24, 2026
   Tournament starts: June 11, 2026 (12:00 EDT / 16:00 UTC)
   Production URL:    https://meebits-futbol.vercel.app
 ================================================================================
@@ -35,12 +35,20 @@ CRITICAL — must be resolved before accepting real user submissions
     - Fix: Move the getNFTsForOwner call in src/lib/web3/alchemy.ts behind
       a new /api/alchemy/tokens route. Keep the key server-only.
 
-[ ] Resolve playoff placeholder teams in src/lib/tournament/teams.ts
-    - As of today (April 21) the UEFA / Inter-Confederation playoffs are
-      finished. Six team slots currently carry `isPlayoffWinner: true`
-      with placeholder labels — Groups A, B, D, F, I, K.
-    - Fix: Replace the placeholders with the actual playoff winners, drop
-      the isPlayoffWinner flag, and set real flag codes.
+[ ] Proper auth layer on /api/submit and /api/leaderboard
+    - Today any client can POST to /api/submit with an arbitrary wallet
+      or email and no signed proof of ownership. A malicious user on
+      another site could construct a form that submits a bracket for a
+      victim's wallet address.
+    - /api/leaderboard returns raw identifiers (wallets are fine, but
+      email plaintext leaks to the network tab / localStorage / anyone
+      scraping the endpoint). Frontend client-side-truncates for display
+      but the raw value is still served.
+    - Proper fix: signed wallet message (SIWE / eth_signTypedData) on
+      submit for wallets, email confirmation link for email identities.
+      On /api/leaderboard, replace `identifier` with an opaque owner
+      key (short stable hash) so the "You" row can still match without
+      leaking the email. See comment in src/app/api/leaderboard/route.ts.
 
 [ ] Smoke-test the delegate.xyz v2 integration end-to-end
     - Use a real pair: cold wallet holds the Meebit Futbol NFTs, hot wallet
@@ -156,6 +164,23 @@ DONE — already landed (do not worry about these)
     Meebits Futbol, Free for everyone else. Token locks are scoped
     per-contract; delegate.xyz is checked independently for each
     collection.
+[x] UEFA / Inter-Confederation playoff winners resolved in teams.ts —
+    Group A: CZE, Group B: BIH, Group D: TUR, Group F: SWE,
+    Group I: IRQ, Group K: COD. All flag codes and API-Football name
+    mappings updated to match.
+[x] Drizzle + Supabase Postgres wired up end-to-end — migrations
+    applied, submission flow works against the real DB in both dev
+    and prod. See DEVELOPER_README.txt §3 for local setup.
+[x] Post-submission UX polished — "Build Bracket" CTAs hide across
+    the site once the user has submitted (Header, Home hero,
+    Divisions page). /bracket redirects to /my-brackets if the user
+    has already submitted. Success modal close → /my-brackets.
+[x] Leaderboard now shows all submissions pre-scoring — unscored
+    entries surface with their champion pick so users can see their
+    entry before the tournament begins.
+[x] Read-only bracket view ordering — /my-brackets/[id] now uses
+    getMatchesByRound so R32 matches align visually with their R16
+    opponents (same helper the builder uses).
 
 
 ================================================================================

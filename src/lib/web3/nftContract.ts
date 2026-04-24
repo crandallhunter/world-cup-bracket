@@ -45,6 +45,3 @@ export const NFT_ABI = [
     outputs: [{ name: '', type: 'uint256' }],
   },
 ] as const;
-
-/** @deprecated Use FUTBOL_CONTRACT.address. Kept to avoid breaking callers mid-refactor. */
-export const NFT_CONTRACT_ADDRESS = FUTBOL_CONTRACT.address;

@@ -68,15 +68,10 @@ function getDrizzle() {
   return globalForDb.__wcbDrizzle;
 }
 
-// Proxies that look like the real exports but defer initialization.
-export const pgClient: PgClient = new Proxy({} as PgClient, {
-  get: (_t, prop) => Reflect.get(getPgClient(), prop),
-  apply: (_t, thisArg, args) => Reflect.apply(getPgClient() as never, thisArg, args),
-});
-
+// Proxy the Drizzle instance so initialization is deferred until first access.
+// Every existing call site — `dbClient.insert(...)`, `dbClient.select(...)`,
+// `dbClient.transaction(...)` — works exactly as before.
 export const dbClient = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
   get: (_t, prop) => Reflect.get(getDrizzle(), prop),
   apply: (_t, thisArg, args) => Reflect.apply(getDrizzle() as never, thisArg, args),
 });
-
-export type DbClient = typeof dbClient;
