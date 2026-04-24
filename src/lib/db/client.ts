@@ -4,6 +4,11 @@
 // is fine. In prod (Amplify / ECS) the process is long-lived and the pool
 // reuses connections across requests — no connection storm on RDS.
 //
+// Connection string resolution (first non-empty wins):
+//   1. DATABASE_URL              — canonical; what we use for AWS RDS / Aurora
+//   2. POSTGRES_URL              — auto-provisioned by the Supabase ↔ Vercel
+//                                  integration (pooled via Supavisor, port 6543)
+//
 // `postgres` (the npm package, v3) is the Drizzle-recommended client for
 // Node runtimes. We use a modest pool size since most queries are fast and
 // per-request concurrency is low.
@@ -12,30 +17,66 @@ import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import * as schema from './schema';
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error(
-    '[db] DATABASE_URL is not set. Populate it in .env.local (dev) or the AWS environment (prod).',
-  );
-}
+type PgClient = ReturnType<typeof postgres>;
 
 // Cache the client across HMR reloads in dev so we don't leak connections.
-// In prod this is just a plain module-level singleton.
-const globalForDb = globalThis as unknown as { __wcbPgClient?: ReturnType<typeof postgres> };
+// In prod this is just a module-level singleton held by the long-lived process.
+const globalForDb = globalThis as unknown as {
+  __wcbPgClient?: PgClient;
+  __wcbDrizzle?: ReturnType<typeof drizzle<typeof schema>>;
+};
 
-const client =
-  globalForDb.__wcbPgClient ??
-  postgres(connectionString, {
+function resolveConnectionString(): string {
+  const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
+  if (!url) {
+    throw new Error(
+      '[db] No Postgres connection string found. Set DATABASE_URL (or POSTGRES_URL ' +
+        'if the Supabase ↔ Vercel integration provides it) in .env.local for dev ' +
+        'and in the AWS environment for prod.',
+    );
+  }
+  return url;
+}
+
+function createClient(): PgClient {
+  return postgres(resolveConnectionString(), {
     // Keep the pool small — the app's steady-state query volume is tiny.
     max: 10,
     // Don't buffer queries indefinitely if the pool is exhausted.
     idle_timeout: 20,
   });
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForDb.__wcbPgClient = client;
 }
 
-export const pgClient = client;
-export const dbClient = drizzle(client, { schema });
+/**
+ * Lazy proxy: we resolve the connection string and instantiate the pool
+ * on first property access, not at module load. This means importing the
+ * module during Next.js's "collect page data" build phase — which happens
+ * even for unreachable routes — doesn't blow up the build when env vars
+ * aren't present at build time.
+ */
+function getPgClient(): PgClient {
+  if (!globalForDb.__wcbPgClient) {
+    globalForDb.__wcbPgClient = createClient();
+  }
+  return globalForDb.__wcbPgClient;
+}
+
+function getDrizzle() {
+  if (!globalForDb.__wcbDrizzle) {
+    globalForDb.__wcbDrizzle = drizzle(getPgClient(), { schema });
+  }
+  return globalForDb.__wcbDrizzle;
+}
+
+// Proxies that look like the real exports but defer initialization.
+export const pgClient: PgClient = new Proxy({} as PgClient, {
+  get: (_t, prop) => Reflect.get(getPgClient(), prop),
+  apply: (_t, thisArg, args) => Reflect.apply(getPgClient() as never, thisArg, args),
+});
+
+export const dbClient = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
+  get: (_t, prop) => Reflect.get(getDrizzle(), prop),
+  apply: (_t, thisArg, args) => Reflect.apply(getDrizzle() as never, thisArg, args),
+});
+
 export type DbClient = typeof dbClient;
