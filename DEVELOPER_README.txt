@@ -42,8 +42,13 @@ Web3
   - Wagmi 2 + viem 2 (contract reads, wallet connection)
   - RainbowKit 2 (wallet UI modal, dark theme with gold accent)
   - Alchemy NFT API v3 (getNFTsForOwner for token ID enumeration)
-  - Contract: Meebits Futbol Group 1 (ERC-721A) on Ethereum mainnet
-    Address: 0x8fBb231840BeDF8a49080Ac3001B9c97BF35f4E9
+  - Gating contracts (both Ethereum mainnet):
+      Meebits Futbol (ERC-721A) — Bronze (1+) and Silver (3+)
+        0x8fBb231840BeDF8a49080Ac3001B9c97BF35f4E9
+      Meebits (original collection) — Gold (1+)
+        0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7
+  - Delegate.xyz v2 supported for both contracts independently
+    (a vault can delegate one or both to the hot wallet).
 
 External APIs
   - Polymarket Gamma API (event ID 30615) — live World Cup winner odds
@@ -100,8 +105,10 @@ Database commands:
 
 Environment Variables (.env.local):
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID   WalletConnect Cloud project ID
-  NEXT_PUBLIC_NFT_CONTRACT_ADDRESS       ERC-721A contract address
+  NEXT_PUBLIC_NFT_CONTRACT_ADDRESS       Meebits Futbol contract
                                          (0x8fBb231840BeDF8a49080Ac3001B9c97BF35f4E9)
+  NEXT_PUBLIC_MEEBIT_CONTRACT_ADDRESS    Meebits (original) contract
+                                         (0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7)
   NEXT_PUBLIC_ALCHEMY_API_KEY            Alchemy API key for NFT lookups
                                          (see "Alchemy API key" gotcha below)
   NEXT_PUBLIC_APP_URL                    Public URL (for share cards / OG)
@@ -317,12 +324,21 @@ R32 SEEDING (r32Seeding.ts + annexC.ts)
   pairings via R32_TO_R16 lookup table. R16->QF->SF->F use sequential.
 
 DIVISION SYSTEM (divisions.ts)
-  4 tiers based on NFT holdings (direct + delegated via delegate.xyz):
-    Gold (5+), Silver (3+), Bronze (1+), Free (0)
+  4 tiers, gated by NFT holdings across two contracts (direct + delegated
+  via delegate.xyz):
+    Gold    1+ Meebit (original collection, 0x7Bd2…6Bc7)
+    Silver  3+ Meebits Futbol
+    Bronze  1+ Meebits Futbol
+    Free    none — everyone else (email or 0 gating NFTs)
 
-  Token ID locking prevents double-use: when a wallet submits, its
-  specific token IDs are recorded. If those NFTs are transferred to
-  a new wallet, they won't count toward that wallet's division.
+  Gold overrides Futbol counts (a Meebit holder is Gold regardless of
+  their Futbol count).
+
+  Token ID locking prevents double-use per contract: the used_tokens
+  table records (contract_address, token_id) → submission. If the NFT
+  is transferred, the new owner can't re-submit with that same token.
+  Locks are scoped per-contract so Meebits Futbol token 123 and Meebits
+  token 123 don't collide.
 
   Division upgrades are allowed before tournament lock (June 11, 2026).
 
@@ -430,14 +446,21 @@ DB TYPES (src/lib/db/types.ts)
   DataStore          Interface for storage backends
 
 DIVISION TYPES (src/lib/divisions.ts)
-  DivisionId         'gold' | 'silver' | 'bronze' | 'open'
-  Division           { id, name, minNFTs, icon, color, bgGradient, prize }
+  DivisionId             'gold' | 'silver' | 'bronze' | 'open'
+  Division               { id, name, requirement, icon, color, bgGradient, prize }
+  DivisionRequirement    { type: 'none' }
+                       | { type: 'futbol'; min: number }
+                       | { type: 'meebit'; min: number }
+  NFTHoldings            { futbolCount; meebitCount }
 
-  Tier thresholds (by total eligible NFTs, direct + delegated):
-    Gold    5+
-    Silver  3-4
-    Bronze  1-2
-    Free    0        (id: 'open', name: 'Free' — ID and display name differ)
+  Tier rules (direct + delegated counted for each collection):
+    Gold    1+ Meebit (original collection)
+    Silver  3+ Meebits Futbol
+    Bronze  1+ Meebits Futbol
+    Free    0  (id: 'open', name: 'Free' — ID and display name differ)
+
+  Gold overrides Futbol counts — a Meebit holder is Gold regardless of
+  how many (or how few) Meebits Futbol NFTs they hold.
 
 
 ================================================================================

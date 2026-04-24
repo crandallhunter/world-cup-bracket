@@ -8,33 +8,39 @@ import {
   DELEGATE_REGISTRY_ABI,
   DelegationType,
 } from '../delegateRegistry';
-import { NFT_ABI, NFT_CONTRACT_ADDRESS } from '../nftContract';
+import {
+  NFT_ABI,
+  FUTBOL_CONTRACT,
+  MEEBIT_CONTRACT,
+  type GatingContract,
+} from '../nftContract';
 
 /** Vault wallet that delegated to the connected hot wallet. */
 export interface DelegatedVault {
   /** Vault (cold) wallet address. */
   address: `0x${string}`;
-  /** Number of Meebit Futbol NFTs the vault holds. */
+  /** NFT balance this vault contributes. */
   balance: number;
 }
 
 /**
- * Looks up all delegate.xyz v2 incoming delegations for the connected
- * wallet, filters for ones covering the Meebit Futbol contract (ALL or
- * CONTRACT delegation types), then reads `balanceOf` on each vault to
- * count how many NFTs they hold.
+ * Look up incoming delegate.xyz v2 delegations for the connected wallet,
+ * keep the ones that cover the supplied gating contract (ALL, CONTRACT, or
+ * ERC721 delegation types), then read `balanceOf` on each vault to sum the
+ * delegated NFT count.
  *
- * Returns the total delegated balance (sum across all vaults) plus the
- * individual vault details for transparency in the UI.
+ * Parameterized so we can call it once per gating contract (Meebits Futbol
+ * and Meebits). The hook handles the two contracts completely independently
+ * — delegations that name only one contract don't leak into the other.
  */
-export function useDelegatedBalance() {
+export function useDelegatedBalance(contract: GatingContract) {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient({ chainId: mainnet.id });
   const [delegatedBalance, setDelegatedBalance] = useState(0);
   const [vaults, setVaults] = useState<DelegatedVault[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Step 1: Fetch all incoming delegations for the connected wallet
+  // Step 1: Fetch all incoming delegations for the connected wallet.
   const { data: delegations, isLoading: isDelegationsLoading } = useReadContract({
     address: DELEGATE_REGISTRY_ADDRESS,
     abi: DELEGATE_REGISTRY_ABI,
@@ -44,13 +50,13 @@ export function useDelegatedBalance() {
     query: {
       enabled: Boolean(isConnected && address),
       retry: 1,
-      // Refresh every 2 minutes — delegations change infrequently
+      // Delegations change infrequently — refresh every 2 minutes.
       staleTime: 2 * 60 * 1000,
     },
   });
 
-  // Step 2: Filter for delegations covering our NFT contract, then
-  // read balanceOf on each vault wallet.
+  // Step 2: Filter delegations for ones that cover `contract`, then read
+  // balanceOf on each vault.
   useEffect(() => {
     if (!delegations || !publicClient || !address) {
       setDelegatedBalance(0);
@@ -58,24 +64,17 @@ export function useDelegatedBalance() {
       return;
     }
 
-    const nftAddress = NFT_CONTRACT_ADDRESS.toLowerCase();
-
-    // Filter: keep ALL delegations and CONTRACT delegations for our NFT
+    const contractAddress = contract.address.toLowerCase();
     const relevantVaults = new Set<`0x${string}`>();
+
     for (const d of delegations) {
       const type = Number(d.type_);
       if (type === DelegationType.ALL) {
         relevantVaults.add(d.from);
       } else if (
-        type === DelegationType.CONTRACT &&
-        d.contract_.toLowerCase() === nftAddress
+        (type === DelegationType.CONTRACT || type === DelegationType.ERC721) &&
+        d.contract_.toLowerCase() === contractAddress
       ) {
-        relevantVaults.add(d.from);
-      } else if (
-        type === DelegationType.ERC721 &&
-        d.contract_.toLowerCase() === nftAddress
-      ) {
-        // ERC721-level delegation also qualifies (specific token)
         relevantVaults.add(d.from);
       }
     }
@@ -86,7 +85,6 @@ export function useDelegatedBalance() {
       return;
     }
 
-    // Read balanceOf for each vault in parallel
     let cancelled = false;
     setIsLoading(true);
 
@@ -96,7 +94,7 @@ export function useDelegatedBalance() {
       vaultAddresses.map(async (vault): Promise<DelegatedVault> => {
         try {
           const balance = await publicClient.readContract({
-            address: NFT_CONTRACT_ADDRESS,
+            address: contract.address,
             abi: NFT_ABI,
             functionName: 'balanceOf',
             args: [vault],
@@ -105,7 +103,7 @@ export function useDelegatedBalance() {
         } catch {
           return { address: vault, balance: 0 };
         }
-      })
+      }),
     ).then((results) => {
       if (cancelled) return;
       const withBalance = results.filter((v) => v.balance > 0);
@@ -118,14 +116,21 @@ export function useDelegatedBalance() {
     return () => {
       cancelled = true;
     };
-  }, [delegations, publicClient, address]);
+  }, [delegations, publicClient, address, contract.address]);
 
   return {
-    /** Total NFTs across all delegating vaults. */
     delegatedBalance,
-    /** Individual vault details. */
     vaults,
-    /** True while fetching delegations or vault balances. */
     isLoading: (isConnected && isDelegationsLoading) || isLoading,
   };
+}
+
+/** Convenience: delegated balance of Meebits Futbol. */
+export function useDelegatedFutbolBalance() {
+  return useDelegatedBalance(FUTBOL_CONTRACT);
+}
+
+/** Convenience: delegated balance of Meebits (original). */
+export function useDelegatedMeebitBalance() {
+  return useDelegatedBalance(MEEBIT_CONTRACT);
 }

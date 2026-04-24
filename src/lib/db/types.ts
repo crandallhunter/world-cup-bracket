@@ -28,6 +28,8 @@ export interface Submission {
 
 export interface UsedToken {
   tokenId: string;
+  /** Lower-cased contract address — distinguishes Meebits Futbol vs. Meebits. */
+  contractAddress: string;
   /** The submission ID that locked this token */
   submissionId: string;
   /** The wallet that held the token at submission time */
@@ -64,12 +66,16 @@ export interface DataStore {
   deleteSubmission(id: string): Promise<void>;
 
   // ── Token locking ──
-  /** Lock token IDs to a submission */
+  /** Lock token IDs to a submission. Each token carries its own contract address. */
   lockTokens(tokens: UsedToken[]): Promise<void>;
   /** Get all used token IDs (across all submissions) */
   getUsedTokenIds(): Promise<UsedToken[]>;
-  /** Check which of the given token IDs are already locked */
-  filterUsedTokens(tokenIds: string[]): Promise<string[]>;
+  /**
+   * Of the given token IDs, return the ones that are already locked against
+   * the given contract. Scoped per-contract so Meebits Futbol token 123 and
+   * Meebits token 123 don't collide.
+   */
+  filterUsedTokens(contractAddress: string, tokenIds: string[]): Promise<string[]>;
   /** Unlock tokens for a submission (for re-submission) */
   unlockTokensForSubmission(submissionId: string): Promise<void>;
 

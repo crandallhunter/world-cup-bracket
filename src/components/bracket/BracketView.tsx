@@ -7,7 +7,7 @@ import { useIdentityStore } from '@/store/identityStore';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { getMatchesByRound } from '@/lib/tournament/r32Seeding';
-import { getOwnedTokenIds } from '@/lib/web3/alchemy';
+import { getAllOwnedTokenIds } from '@/lib/web3/alchemy';
 import { Flag } from '@/components/ui/Flag';
 import { BracketMatch } from './BracketMatch';
 import { Button } from '@/components/ui/Button';
@@ -66,17 +66,21 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
     try {
       let identityType: 'wallet' | 'email';
       let identifier: string;
-      let tokenIds: string[] = [];
+      let futbolTokenIds: string[] = [];
+      let meebitTokenIds: string[] = [];
 
       if (hasWalletIdentity && address) {
         identityType = 'wallet';
         identifier = address;
-        // Fetch token IDs from Alchemy
+        // Fetch token IDs from both gating contracts in parallel via Alchemy.
+        // If Alchemy fails we fall through with empty arrays → Open tier.
         try {
-          tokenIds = await getOwnedTokenIds(address);
+          const tokens = await getAllOwnedTokenIds(address);
+          futbolTokenIds = tokens.futbolTokenIds;
+          meebitTokenIds = tokens.meebitTokenIds;
         } catch {
-          // If Alchemy fails, submit with 0 tokens (Open tier)
-          tokenIds = [];
+          futbolTokenIds = [];
+          meebitTokenIds = [];
         }
       } else if (hasEmailIdentity && identity?.type === 'email') {
         identityType = 'email';
@@ -102,7 +106,8 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
         body: JSON.stringify({
           identityType,
           identifier,
-          tokenIds,
+          futbolTokenIds,
+          meebitTokenIds,
           groupStandings: Object.values(groupStandings),
           qualifiedThirdPlace: selectedThirdPlace,
           knockoutPicks: knockoutBracket,

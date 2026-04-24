@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import type { Submission } from '@/lib/db/types';
-import { getDivisionForCount, isTournamentLocked } from '@/lib/divisions';
+import type { Submission, UsedToken } from '@/lib/db/types';
+import {
+  getDivisionForHoldings,
+  isTournamentLocked,
+  type NFTHoldings,
+} from '@/lib/divisions';
+import { FUTBOL_CONTRACT, MEEBIT_CONTRACT } from '@/lib/web3/nftContract';
 
 /**
  * POST /api/submit
@@ -10,13 +15,14 @@ import { getDivisionForCount, isTournamentLocked } from '@/lib/divisions';
  * Body:
  * {
  *   identityType: 'wallet' | 'email',
- *   identifier: string,          // wallet address or email
- *   tokenIds?: string[],         // token IDs held (wallet only, from Alchemy)
- *   groupStandings: ...,
- *   qualifiedThirdPlace: ...,
- *   knockoutPicks: ...,
- *   champion?: ...,
- *   finalScore?: ...,
+ *   identifier: string,              // wallet address or email
+ *   // Per-contract token IDs the client claims the wallet holds. The server
+ *   // re-validates by filtering out any that are already locked by another
+ *   // submission. Empty arrays are fine.
+ *   futbolTokenIds?: string[],
+ *   meebitTokenIds?: string[],
+ *   // Bracket data
+ *   groupStandings, qualifiedThirdPlace, knockoutPicks, champion?, finalScore?
  * }
  */
 export async function POST(req: NextRequest) {
@@ -24,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (isTournamentLocked()) {
       return NextResponse.json(
         { error: 'Tournament has started — submissions are locked.' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -32,7 +38,8 @@ export async function POST(req: NextRequest) {
     const {
       identityType,
       identifier,
-      tokenIds = [],
+      futbolTokenIds = [],
+      meebitTokenIds = [],
       groupStandings,
       qualifiedThirdPlace,
       knockoutPicks,
@@ -50,38 +57,52 @@ export async function POST(req: NextRequest) {
 
     const normalizedId = identifier.toLowerCase();
 
-    // ── Check for existing submission ──
+    // ── Reject duplicate submissions ──
     const existing = await db.getSubmissionByIdentity(normalizedId);
     if (existing) {
       return NextResponse.json(
         { error: 'You have already submitted a bracket. Use the upgrade endpoint to change divisions.' },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
-    // ── Determine division ──
-    let eligibleCount = 0;
-    let lockedTokenIds: string[] = [];
+    // ── Resolve eligible holdings ──
+    // The client sends what it *thinks* the wallet holds. We filter out any
+    // token IDs already locked by a prior submission on the same contract,
+    // per-contract so identical token IDs across contracts don't collide.
+    let cleanFutbolIds: string[] = [];
+    let cleanMeebitIds: string[] = [];
 
-    if (identityType === 'wallet' && tokenIds.length > 0) {
-      // Filter out token IDs that are already used by other submissions
-      const usedIds = await db.filterUsedTokens(tokenIds);
-      const cleanIds = tokenIds.filter((id: string) => !usedIds.includes(id));
-      eligibleCount = cleanIds.length;
-      lockedTokenIds = cleanIds;
+    if (identityType === 'wallet') {
+      if (Array.isArray(futbolTokenIds) && futbolTokenIds.length > 0) {
+        const usedFutbol = await db.filterUsedTokens(FUTBOL_CONTRACT.address, futbolTokenIds);
+        cleanFutbolIds = (futbolTokenIds as string[]).filter((id) => !usedFutbol.includes(id));
+      }
+      if (Array.isArray(meebitTokenIds) && meebitTokenIds.length > 0) {
+        const usedMeebit = await db.filterUsedTokens(MEEBIT_CONTRACT.address, meebitTokenIds);
+        cleanMeebitIds = (meebitTokenIds as string[]).filter((id) => !usedMeebit.includes(id));
+      }
     }
-    // Email users and wallet users with 0 NFTs → Open tier (eligibleCount stays 0)
 
-    const division = getDivisionForCount(eligibleCount);
+    const holdings: NFTHoldings = {
+      futbolCount: cleanFutbolIds.length,
+      meebitCount: cleanMeebitIds.length,
+    };
 
-    // ── Create submission ──
+    const division = getDivisionForHoldings(holdings);
+
+    // ── Persist submission + token locks in a consistent order ──
+    const now = Date.now();
     const submission: Submission = {
       id: crypto.randomUUID(),
       identityType,
       identifier: normalizedId,
       divisionId: division.id,
-      lockedTokenIds,
-      submittedAt: Date.now(),
+      // Flat list retained for backwards compat with callers that read the
+      // Submission row; the canonical per-contract breakdown lives in the
+      // used_tokens table.
+      lockedTokenIds: [...cleanFutbolIds, ...cleanMeebitIds],
+      submittedAt: now,
       groupStandings,
       qualifiedThirdPlace,
       knockoutPicks,
@@ -91,16 +112,25 @@ export async function POST(req: NextRequest) {
 
     await db.createSubmission(submission);
 
-    // Lock token IDs (wallet users only)
-    if (lockedTokenIds.length > 0) {
-      await db.lockTokens(
-        lockedTokenIds.map((tokenId) => ({
-          tokenId,
-          submissionId: submission.id,
-          walletAddress: normalizedId,
-          lockedAt: Date.now(),
-        }))
-      );
+    const locks: UsedToken[] = [
+      ...cleanFutbolIds.map((tokenId) => ({
+        tokenId,
+        contractAddress: FUTBOL_CONTRACT.address,
+        submissionId: submission.id,
+        walletAddress: normalizedId,
+        lockedAt: now,
+      })),
+      ...cleanMeebitIds.map((tokenId) => ({
+        tokenId,
+        contractAddress: MEEBIT_CONTRACT.address,
+        submissionId: submission.id,
+        walletAddress: normalizedId,
+        lockedAt: now,
+      })),
+    ];
+
+    if (locks.length > 0) {
+      await db.lockTokens(locks);
     }
 
     return NextResponse.json({
@@ -108,7 +138,8 @@ export async function POST(req: NextRequest) {
       submissionId: submission.id,
       divisionId: division.id,
       divisionName: division.name,
-      lockedTokenCount: lockedTokenIds.length,
+      lockedFutbolCount: cleanFutbolIds.length,
+      lockedMeebitCount: cleanMeebitIds.length,
     });
   } catch (err) {
     console.error('[Submit API] Error:', err);
@@ -124,7 +155,6 @@ export async function POST(req: NextRequest) {
  * Fetch a full submission by its ID (for the bracket detail page).
  */
 export async function GET(req: NextRequest) {
-  // ── Fetch full submission by ID ──
   const submissionId = req.nextUrl.searchParams.get('id');
   if (submissionId) {
     const submission = await db.getSubmissionById(submissionId);
@@ -134,7 +164,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ exists: true, submission });
   }
 
-  // ── Check by identity ──
   const identifier = req.nextUrl.searchParams.get('identifier');
   if (!identifier) {
     return NextResponse.json({ error: 'Missing identifier or id.' }, { status: 400 });

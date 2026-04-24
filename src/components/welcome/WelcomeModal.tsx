@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
-import { DIVISIONS } from '@/lib/divisions';
+import { DIVISIONS, requirementShortLabel } from '@/lib/divisions';
 import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { useUserDivision } from '@/lib/web3/hooks/useUserDivision';
 import { Button } from '@/components/ui/Button';
@@ -23,7 +23,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   const { openConnectModal } = useConnectModal();
   const { isConnected } = useAccount();
-  const { division, nftCount, directBalance, delegatedBalance, isLoading } = useUserDivision();
+  const { division, futbol, meebit, isLoading } = useUserDivision();
 
   // If wallet just connected, switch to connected phase
   useEffect(() => {
@@ -93,9 +93,8 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
                 <ConnectedPhase
                   key="connected"
                   division={division}
-                  nftCount={nftCount}
-                  directBalance={directBalance}
-                  delegatedBalance={delegatedBalance}
+                  futbol={futbol}
+                  meebit={meebit}
                   isLoading={isLoading}
                   onContinue={handleConnectedContinue}
                 />
@@ -153,7 +152,7 @@ function MainPhase({
                   {div.name}
                 </span>
                 <span className="text-[11px] text-white/40 ml-2">
-                  {div.id === 'open' ? 'Free' : `${div.minNFTs}+ NFTs`}
+                  {requirementShortLabel(div.requirement)}
                 </span>
               </div>
             </div>
@@ -265,16 +264,14 @@ function EmailPhase({
 
 function ConnectedPhase({
   division,
-  nftCount,
-  directBalance,
-  delegatedBalance,
+  futbol,
+  meebit,
   isLoading,
   onContinue,
 }: {
   division: ReturnType<typeof useUserDivision>['division'];
-  nftCount: number;
-  directBalance: number;
-  delegatedBalance: number;
+  futbol: ReturnType<typeof useUserDivision>['futbol'];
+  meebit: ReturnType<typeof useUserDivision>['meebit'];
   isLoading: boolean;
   onContinue: () => void;
 }) {
@@ -291,13 +288,23 @@ function ConnectedPhase({
     );
   }
 
-  const isNFTHolder = nftCount > 0;
+  const futbolTotal = futbol.direct + futbol.delegated;
+  const meebitTotal = meebit.direct + meebit.delegated;
+  const totalDelegated = futbol.delegated + meebit.delegated;
+  const isNFTHolder = futbolTotal + meebitTotal > 0;
 
-  // Build a human-readable breakdown when delegation is involved
-  const holdingDetail =
-    delegatedBalance > 0
-      ? `${directBalance} owned + ${delegatedBalance} delegated`
-      : undefined;
+  // Per-collection detection copy, e.g. "1 Meebit + 4 Meebits Futbol"
+  const detectionParts: string[] = [];
+  if (meebitTotal > 0) {
+    detectionParts.push(`${meebitTotal} Meebit${meebitTotal !== 1 ? 's' : ''}`);
+  }
+  if (futbolTotal > 0) {
+    detectionParts.push(`${futbolTotal} Meebits Futbol`);
+  }
+  const detectionLine = detectionParts.join(' + ');
+
+  const delegationNote =
+    totalDelegated > 0 ? `(${totalDelegated} via delegate.xyz)` : undefined;
 
   return (
     <motion.div
@@ -327,11 +334,11 @@ function ConnectedPhase({
               Division
             </h2>
             <p className="text-sm text-white/50 mb-1">
-              {nftCount} Meebits Futbol NFT{nftCount !== 1 ? 's' : ''} detected
+              {detectionLine} detected
             </p>
-            {holdingDetail && (
+            {delegationNote && (
               <p className="text-xs text-white/35 mb-3">
-                ({holdingDetail} via delegate.xyz)
+                {delegationNote}
               </p>
             )}
             {division && (

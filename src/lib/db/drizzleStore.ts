@@ -119,10 +119,7 @@ export const drizzleStore: DataStore = {
     await dbClient.insert(usedTokens).values(
       tokens.map((t) => ({
         tokenId: t.tokenId,
-        // The domain UsedToken type doesn't carry contract_address yet — we
-        // derive it from env at lock time. Kept explicit in the column so the
-        // schema can represent multi-contract gating in the future.
-        contractAddress: (process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS ?? '').toLowerCase(),
+        contractAddress: t.contractAddress.toLowerCase(),
         submissionId: t.submissionId,
         walletAddress: t.walletAddress.toLowerCase(),
         lockedAt: new Date(t.lockedAt),
@@ -134,21 +131,21 @@ export const drizzleStore: DataStore = {
     const rows = await dbClient.select().from(usedTokens);
     return rows.map((r) => ({
       tokenId: r.tokenId,
+      contractAddress: r.contractAddress,
       submissionId: r.submissionId,
       walletAddress: r.walletAddress,
       lockedAt: r.lockedAt.getTime(),
     }));
   },
 
-  async filterUsedTokens(tokenIds) {
+  async filterUsedTokens(contractAddress, tokenIds) {
     if (tokenIds.length === 0) return [];
-    const contractAddress = (process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS ?? '').toLowerCase();
     const rows = await dbClient
       .select({ tokenId: usedTokens.tokenId })
       .from(usedTokens)
       .where(
         and(
-          eq(usedTokens.contractAddress, contractAddress),
+          eq(usedTokens.contractAddress, contractAddress.toLowerCase()),
           inArray(usedTokens.tokenId, tokenIds),
         ),
       );

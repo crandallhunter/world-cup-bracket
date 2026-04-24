@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { DIVISIONS } from '@/lib/divisions';
+import { DIVISIONS, requirementText } from '@/lib/divisions';
 import { DivisionBadge } from '@/components/divisions/DivisionBadge';
 import { useUserDivision } from '@/lib/web3/hooks/useUserDivision';
 import { cn } from '@/lib/utils/cn';
@@ -24,12 +24,34 @@ const cardVariants = {
   show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 280, damping: 28 } },
 };
 
+/** Per-collection breakdown shown under "Your Division". */
+function formatHoldings(
+  futbol: { direct: number; delegated: number },
+  meebit: { direct: number; delegated: number },
+): string {
+  const parts: string[] = [];
+  const futbolTotal = futbol.direct + futbol.delegated;
+  const meebitTotal = meebit.direct + meebit.delegated;
+
+  if (meebitTotal > 0) {
+    parts.push(`${meebitTotal} Meebit${meebitTotal !== 1 ? 's' : ''}`);
+  }
+  if (futbolTotal > 0) {
+    parts.push(`${futbolTotal} Meebits Futbol`);
+  }
+  if (parts.length === 0) return 'No gating NFTs held';
+
+  const delegatedTotal = futbol.delegated + meebit.delegated;
+  const base = parts.join(' + ');
+  return delegatedTotal > 0 ? `${base} (${delegatedTotal} via delegate.xyz)` : base;
+}
+
 export default function DivisionsPage() {
   const [counts, setCounts] = useState<Record<DivisionId, number>>({
     gold: 0, silver: 0, bronze: 0, open: 0,
   });
   const [totalParticipants, setTotalParticipants] = useState(0);
-  const { division: userDivision, nftCount, delegatedBalance, isConnected } = useUserDivision();
+  const { division: userDivision, futbol, meebit, isConnected } = useUserDivision();
 
   useEffect(() => {
     fetch('/api/divisions')
@@ -55,8 +77,9 @@ export default function DivisionsPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Divisions</h1>
         <p className="text-white/50 text-sm">
-          Compete for prizes based on your Meebits Futbol NFT holdings.
-          The more you hold, the higher the division.
+          Compete for prizes based on your NFT holdings. Gold is reserved for
+          Meebit holders; Silver and Bronze are tiered by your Meebits Futbol
+          count; everyone else plays in the Free division.
         </p>
       </div>
 
@@ -72,10 +95,7 @@ export default function DivisionsPage() {
             <div>
               <p className="text-sm font-medium text-white">Your Division</p>
               <p className="text-xs text-white/45">
-                {nftCount} NFT{nftCount !== 1 ? 's' : ''} held
-                {delegatedBalance > 0 && (
-                  <span className="text-white/35"> ({delegatedBalance} via delegate.xyz)</span>
-                )}
+                {formatHoldings(futbol, meebit)}
               </p>
             </div>
           </div>
@@ -143,9 +163,7 @@ export default function DivisionsPage() {
                       )}
                     </div>
                     <p className="text-sm text-white/50">
-                      {div.id === 'open'
-                        ? 'Open to everyone — no NFT required'
-                        : `Requires ${div.minNFTs}+ Meebits Futbol NFTs`}
+                      {requirementText(div.requirement)}
                     </p>
                   </div>
                 </div>

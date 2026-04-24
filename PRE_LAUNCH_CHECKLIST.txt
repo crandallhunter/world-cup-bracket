@@ -53,12 +53,13 @@ CRITICAL — must be resolved before accepting real user submissions
     - Code is live (src/lib/web3/delegateRegistry.ts + useDelegatedBalance.ts)
       but has never been exercised against the real on-chain registry.
 
-[ ] Confirm the Meebit Futbol contract has live holders on mainnet
-    - Contract: 0x8fBb231840BeDF8a49080Ac3001B9c97BF35f4E9
-    - If the collection is not yet minted, every user lands in the Free
-      tier and the division system is cosmetic only.
-    - If mint is still pending, decide whether to launch anyway with
-      only the Free division active, or delay until holders exist.
+[ ] Confirm gating-contract states on mainnet
+    - Meebits Futbol (0x8fBb…f4E9): Bronze / Silver gate. If not yet
+      minted, Bronze and Silver are empty until mint lands.
+    - Meebits (0x7Bd2…6Bc7): Gold gate. The original Meebits collection
+      is fully minted and actively traded, so Gold works from day one.
+    - Decide whether launching with only Gold + Free active pre-mint is
+      acceptable, or hold until Meebits Futbol is live.
 
 [ ] Sanity-check the tournament lock date
     - Hardcoded in src/lib/divisions.ts:
@@ -150,6 +151,11 @@ DONE — already landed (do not worry about these)
 [x] Cron business logic extracted — shared src/lib/cron/updateScores.ts
     is called from both the local Next.js route (testing only) and the
     production AWS Lambda at lambdas/update-scores/index.ts.
+[x] Multi-contract division gating — Gold is now gated by Meebits
+    (0x7Bd2…6Bc7, 1+), Silver by 3+ Meebits Futbol, Bronze by 1+
+    Meebits Futbol, Free for everyone else. Token locks are scoped
+    per-contract; delegate.xyz is checked independently for each
+    collection.
 
 
 ================================================================================

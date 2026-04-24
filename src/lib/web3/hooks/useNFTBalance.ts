@@ -3,13 +3,23 @@
 import { useReadContract } from 'wagmi';
 import { useAccount } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
-import { NFT_ABI, NFT_CONTRACT_ADDRESS } from '../nftContract';
+import {
+  NFT_ABI,
+  FUTBOL_CONTRACT,
+  MEEBIT_CONTRACT,
+  type GatingContract,
+} from '../nftContract';
 
-export function useNFTBalance() {
+/**
+ * Read the `balanceOf` of a specific ERC-721 contract for the connected wallet.
+ * Parameterized so both Meebits Futbol and Meebits (original) gating can share
+ * the same logic.
+ */
+export function useNFTBalance(contract: GatingContract) {
   const { address, isConnected } = useAccount();
 
   const { data, isLoading, error } = useReadContract({
-    address: NFT_CONTRACT_ADDRESS,
+    address: contract.address,
     abi: NFT_ABI,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
@@ -29,4 +39,14 @@ export function useNFTBalance() {
     address,
     isConnected,
   };
+}
+
+/** Convenience hook: connected wallet's Meebits Futbol balance. */
+export function useFutbolBalance() {
+  return useNFTBalance(FUTBOL_CONTRACT);
+}
+
+/** Convenience hook: connected wallet's Meebits (original) balance. */
+export function useMeebitBalance() {
+  return useNFTBalance(MEEBIT_CONTRACT);
 }
