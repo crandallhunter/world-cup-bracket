@@ -21,13 +21,6 @@ CRITICAL — must be resolved before accepting real user submissions
     - The same schema and migrations will apply to AWS RDS / Aurora
       Postgres in production — swap DATABASE_URL, re-run migrations.
 
-[ ] Set real prize amounts for each division
-    - Current: src/lib/divisions.ts has `prize: 'TBD'` for all four tiers
-      (Gold, Silver, Bronze, Free). This string renders literally on
-      /divisions and in the division cards.
-    - Fix: Update the `prize` field for each entry in the DIVISIONS array,
-      or — if prizes are not finalized — replace "TBD" with a friendlier
-      placeholder like "Prizes announced soon".
 
 [ ] Proxy the Alchemy API key through a server-side API route
     - Current: NEXT_PUBLIC_ALCHEMY_API_KEY is exposed to the browser bundle,
@@ -181,6 +174,11 @@ DONE — already landed (do not worry about these)
 [x] Read-only bracket view ordering — /my-brackets/[id] now uses
     getMatchesByRound so R32 matches align visually with their R16
     opponents (same helper the builder uses).
+[x] Division prizes set (April 24 team meeting decisions):
+    Gold   → Pig Meebit #8506
+    Silver → Meebit #10630
+    Bronze → $500 value prize
+    Free   → 3 pack of physical Meebit jerseys
 
 
 ================================================================================

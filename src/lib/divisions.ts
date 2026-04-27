@@ -30,7 +30,7 @@ export interface Division {
   bgGradient: string;
   /** Icon/emoji */
   icon: string;
-  /** Prize description — TBD, will be filled before launch */
+  /** Prize description displayed on /divisions and in the welcome modal. */
   prize: string;
 }
 
@@ -43,7 +43,7 @@ export const DIVISIONS: Division[] = [
     color: 'from-yellow-400 to-amber-400',
     bgGradient: 'from-yellow-500/20 to-amber-500/20',
     icon: '🥇',
-    prize: 'TBD',
+    prize: 'Pig Meebit #8506',
   },
   {
     id: 'silver',
@@ -52,7 +52,7 @@ export const DIVISIONS: Division[] = [
     color: 'from-gray-300 to-gray-400',
     bgGradient: 'from-gray-400/20 to-gray-500/20',
     icon: '🥈',
-    prize: 'TBD',
+    prize: 'Meebit #10630',
   },
   {
     id: 'bronze',
@@ -61,7 +61,7 @@ export const DIVISIONS: Division[] = [
     color: 'from-orange-400 to-amber-600',
     bgGradient: 'from-orange-500/20 to-amber-600/20',
     icon: '🥉',
-    prize: 'TBD',
+    prize: '$500 value prize',
   },
   {
     id: 'open',
@@ -70,7 +70,7 @@ export const DIVISIONS: Division[] = [
     color: 'from-white/60 to-white/40',
     bgGradient: 'from-white/5 to-white/10',
     icon: '🌍',
-    prize: 'TBD',
+    prize: '3 pack of physical Meebit jerseys',
   },
 ];
 
