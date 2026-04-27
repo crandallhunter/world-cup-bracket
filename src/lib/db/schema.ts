@@ -23,7 +23,9 @@ import {
   jsonb,
   unique,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import type { DivisionId } from '@/lib/divisions';
 import type {
   GroupStanding,
@@ -62,10 +64,27 @@ export const submissions = pgTable(
       .notNull()
       .defaultNow(),
     bracket: jsonb('bracket').$type<SubmissionBracketJson>().notNull(),
+    /**
+     * Optional self-chosen display name shown on the leaderboard.
+     * 3-20 chars, alphanumerics + dash + underscore. Case-insensitively
+     * unique across all submissions (enforced by username_lower_unq below).
+     */
+    username: text('username'),
+    /**
+     * ENS reverse name resolved at submission time for wallet identities
+     * that didn't provide a username. One-shot resolution — does not
+     * refresh if the user later acquires an ENS name. Null for email
+     * identities or wallets without an ENS reverse record.
+     */
+    ensName: text('ens_name'),
   },
   (t) => [
     index('submissions_division_idx').on(t.divisionId),
     index('submissions_submitted_at_idx').on(t.submittedAt),
+    // Case-insensitive uniqueness on username so "Alice" and "alice"
+    // can't both exist. Functional unique index — Drizzle exposes raw
+    // SQL via the .on(sql\`...\`) escape hatch.
+    uniqueIndex('submissions_username_lower_unq').on(sql`lower(${t.username})`),
   ],
 );
 

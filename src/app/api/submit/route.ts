@@ -7,6 +7,8 @@ import {
   type NFTHoldings,
 } from '@/lib/divisions';
 import { FUTBOL_CONTRACT, MEEBIT_CONTRACT } from '@/lib/web3/nftContract';
+import { resolveEnsName } from '@/lib/web3/ens';
+import { validateUsername } from '@/lib/username';
 
 /**
  * POST /api/submit
@@ -45,6 +47,7 @@ export async function POST(req: NextRequest) {
       knockoutPicks,
       champion,
       finalScore,
+      username: rawUsername,
     } = body;
 
     // ── Validation ──
@@ -64,6 +67,23 @@ export async function POST(req: NextRequest) {
         { error: 'You have already submitted a bracket. Use the upgrade endpoint to change divisions.' },
         { status: 409 },
       );
+    }
+
+    // ── Validate the optional username and check uniqueness ──
+    let username: string | undefined;
+    if (rawUsername !== undefined && rawUsername !== null && rawUsername !== '') {
+      const result = validateUsername(rawUsername);
+      if (!result.ok) {
+        return NextResponse.json({ error: result.reason }, { status: 400 });
+      }
+      const available = await db.isUsernameAvailable(result.value);
+      if (!available) {
+        return NextResponse.json(
+          { error: 'That username is already taken. Pick another.' },
+          { status: 409 },
+        );
+      }
+      username = result.value;
     }
 
     // ── Resolve eligible holdings ──
@@ -91,6 +111,16 @@ export async function POST(req: NextRequest) {
 
     const division = getDivisionForHoldings(holdings);
 
+    // ── ENS reverse lookup for wallet users without a chosen username ──
+    // Best-effort: 2 s timeout, errors swallowed. If we get a name we
+    // persist it as a leaderboard fallback label. Skipped entirely when
+    // the user picked a username (it'd just be unused).
+    let ensName: string | undefined;
+    if (identityType === 'wallet' && !username) {
+      const resolved = await resolveEnsName(normalizedId);
+      ensName = resolved ?? undefined;
+    }
+
     // ── Persist submission + token locks in a consistent order ──
     const now = Date.now();
     const submission: Submission = {
@@ -103,6 +133,8 @@ export async function POST(req: NextRequest) {
       // used_tokens table.
       lockedTokenIds: [...cleanFutbolIds, ...cleanMeebitIds],
       submittedAt: now,
+      username,
+      ensName,
       groupStandings,
       qualifiedThirdPlace,
       knockoutPicks,

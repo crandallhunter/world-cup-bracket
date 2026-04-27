@@ -41,6 +41,8 @@ async function rowToSubmission(row: SubmissionRow): Promise<Submission> {
     divisionId: row.divisionId,
     lockedTokenIds: tokenRows.map((t) => t.tokenId),
     submittedAt: row.submittedAt.getTime(),
+    username: row.username ?? undefined,
+    ensName: row.ensName ?? undefined,
     groupStandings: bracket.groupStandings,
     qualifiedThirdPlace: bracket.qualifiedThirdPlace,
     knockoutPicks: bracket.knockoutPicks,
@@ -64,6 +66,10 @@ function submissionToInsert(sub: Submission) {
     divisionId: sub.divisionId,
     submittedAt: new Date(sub.submittedAt),
     bracket,
+    // Username stored as-typed for display; case-insensitive uniqueness
+    // is enforced by submissions_username_lower_unq.
+    username: sub.username ?? null,
+    ensName: sub.ensName ?? null,
   };
 }
 
@@ -105,6 +111,20 @@ export const drizzleStore: DataStore = {
   async deleteSubmission(id) {
     // ON DELETE CASCADE on used_tokens and submission_scores handles cleanup.
     await dbClient.delete(submissions).where(eq(submissions.id, id));
+  },
+
+  async isUsernameAvailable(username) {
+    // Case-insensitive existence check. Mirrors the unique index on
+    // lower(username), so a "true" here means the subsequent insert won't
+    // collide (modulo a race we accept — concurrent claims would surface
+    // as a Postgres unique-violation error and bubble up as a 409 from
+    // the submit route).
+    const [hit] = await dbClient
+      .select({ id: submissions.id })
+      .from(submissions)
+      .where(sql`lower(${submissions.username}) = ${username.toLowerCase()}`)
+      .limit(1);
+    return !hit;
   },
 
   // ── Token locking ──

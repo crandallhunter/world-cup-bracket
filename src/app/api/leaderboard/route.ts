@@ -67,12 +67,13 @@ export async function GET(req: NextRequest) {
     for (const s of scores) scoreById.set(s.submissionId, s);
 
     // Build a leaderboard entry for every submission. Use the real score
-    // if we have one, otherwise fall through to a zero breakdown.
+    // if we have one, otherwise fall through to a zero breakdown. Always
+    // pass through the display labels (username / ensName) from the
+    // submission row — the cron writes scores asynchronously and may
+    // not have them, so the submission is the source of truth.
     const leaderboard = submissions.map((sub) => {
       const scored = scoreById.get(sub.id);
-      if (scored) return scored;
-
-      const fallback: SubmissionScore = {
+      const base: SubmissionScore = scored ?? {
         submissionId: sub.id,
         identifier: sub.identifier,
         divisionId: sub.divisionId,
@@ -81,7 +82,11 @@ export async function GET(req: NextRequest) {
         champion: sub.champion,
         updatedAt: sub.submittedAt,
       };
-      return fallback;
+      return {
+        ...base,
+        username: sub.username,
+        ensName: sub.ensName,
+      };
     });
 
     // Sort: total DESC, then tiebreaker ASC (NULLs last), then newest first.

@@ -179,6 +179,12 @@ DONE — already landed (do not worry about these)
     Silver → Meebit #10630
     Bronze → $500 value prize
     Free   → 3 pack of physical Meebit jerseys
+[x] Self-chosen leaderboard usernames + ENS fallback. Optional input on
+    the submit screen (3-20 chars, alphanumerics + dash/underscore,
+    case-insensitively unique). For wallet users without a username we
+    resolve ENS at submission time (2 s timeout, best-effort) and use
+    that as a fallback display label. Leaderboard rendering priority:
+    username → ensName → truncated address → masked email.
 
 
 ================================================================================

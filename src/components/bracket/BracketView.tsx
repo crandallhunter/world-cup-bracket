@@ -15,6 +15,7 @@ import { BracketMatch } from './BracketMatch';
 import { Button } from '@/components/ui/Button';
 import { SubmitModal } from '@/components/submission/SubmitModal';
 import { Spinner } from '@/components/ui/Spinner';
+import { validateUsername, USERNAME_RULES } from '@/lib/username';
 import type { KnockoutMatch } from '@/types/tournament';
 import type { DivisionId } from '@/lib/divisions';
 
@@ -50,6 +51,12 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
   // Email input for users who haven't set identity yet
   const [emailInput, setEmailInput] = useState('');
   const [showEmailField, setShowEmailField] = useState(false);
+  // Optional self-chosen leaderboard display name. Live-validated on
+  // format only; uniqueness is enforced server-side at submit time.
+  const [usernameInput, setUsernameInput] = useState('');
+  const usernameTrimmed = usernameInput.trim();
+  const usernameValidation =
+    usernameTrimmed.length === 0 ? null : validateUsername(usernameTrimmed);
 
   if (!champion || champion.id === '__TBD__') return null;
 
@@ -62,6 +69,15 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
 
   async function handleSubmit() {
     setError(null);
+
+    // Block on a clearly-invalid username. Empty is fine — server treats
+    // missing username as "no display name chosen". A populated-but-invalid
+    // value gets caught here so we don't waste a network round-trip.
+    if (usernameTrimmed.length > 0 && usernameValidation && !usernameValidation.ok) {
+      setError(usernameValidation.reason);
+      return;
+    }
+
     setSubmitting(true);
     setFinalScore({ home, away });
 
@@ -115,6 +131,10 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
           knockoutPicks: knockoutBracket,
           champion,
           finalScore: { home, away },
+          username:
+            usernameTrimmed.length > 0 && usernameValidation?.ok
+              ? usernameValidation.value
+              : undefined,
         }),
       });
 
@@ -253,6 +273,36 @@ function ChampionModal({ onClose, onSubmitted }: { onClose: () => void; onSubmit
               </div>
             </motion.div>
           )}
+
+          {/* Optional leaderboard display name */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.38 }}
+            className="relative space-y-2 border-t border-white/8 pt-4 text-left"
+          >
+            <div className="flex items-baseline justify-between">
+              <p className="text-[11px] font-semibold text-white/45 uppercase tracking-widest">
+                Display name
+              </p>
+              <span className="text-[10px] text-white/30">optional</span>
+            </div>
+            <input
+              type="text"
+              value={usernameInput}
+              onChange={(e) => setUsernameInput(e.target.value)}
+              maxLength={USERNAME_RULES.maxLength}
+              placeholder="Show on leaderboard"
+              autoComplete="off"
+              spellCheck={false}
+              className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white/25 transition-colors"
+            />
+            {usernameValidation && !usernameValidation.ok ? (
+              <p className="text-[11px] text-red-400/80">{usernameValidation.reason}</p>
+            ) : (
+              <p className="text-[11px] text-white/30">{USERNAME_RULES.description}</p>
+            )}
+          </motion.div>
 
           {/* Identity section — show if no identity set yet */}
           {!hasWalletIdentity && !hasEmailIdentity && (

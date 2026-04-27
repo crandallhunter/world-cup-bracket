@@ -21,6 +21,25 @@ interface LeaderboardEntry {
   tiebreaker: number | null;
   champion?: { name: string; flagCode: string; id: string };
   updatedAt: number;
+  /** Self-chosen display name (preferred). */
+  username?: string;
+  /** ENS reverse name resolved at submission (fallback for wallets). */
+  ensName?: string;
+}
+
+/**
+ * Display priority for the player label, in order:
+ *   1. Self-chosen username
+ *   2. ENS reverse name (wallet only)
+ *   3. Truncated 0x... wallet address
+ *   4. Email local-part with masked domain
+ */
+function displayLabel(entry: LeaderboardEntry): string {
+  if (entry.username) return entry.username;
+  if (entry.ensName) return entry.ensName;
+  const id = entry.identifier;
+  if (id.includes('@')) return `${id.split('@')[0]}@...`;
+  return `${id.slice(0, 6)}...${id.slice(-4)}`;
 }
 
 type TabId = 'all' | DivisionId;
@@ -167,9 +186,7 @@ export default function LeaderboardPage() {
                   <div className="flex items-center gap-2 min-w-0">
                     <DivisionBadge division={getDivisionById(entry.divisionId)} size="sm" showLabel={false} />
                     <span className="text-sm text-white/70 truncate font-mono">
-                      {entry.identifier.includes('@')
-                        ? entry.identifier.split('@')[0] + '@...'
-                        : `${entry.identifier.slice(0, 6)}...${entry.identifier.slice(-4)}`}
+                      {displayLabel(entry)}
                     </span>
                     {isUser && (
                       <span className="text-[10px] text-[#6366f1] font-semibold uppercase tracking-wide">You</span>
@@ -227,9 +244,7 @@ export default function LeaderboardPage() {
                   <div className="flex items-center gap-2 min-w-0">
                     <DivisionBadge division={getDivisionById(entry.divisionId)} size="sm" showLabel={false} />
                     <span className="text-sm text-white/70 truncate font-mono">
-                      {entry.identifier.includes('@')
-                        ? entry.identifier.split('@')[0] + '@...'
-                        : `${entry.identifier.slice(0, 6)}...${entry.identifier.slice(-4)}`}
+                      {displayLabel(entry)}
                     </span>
                     {isUser && (
                       <span className="text-[10px] text-[#6366f1] font-semibold uppercase tracking-wide">You</span>

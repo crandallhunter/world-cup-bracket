@@ -342,6 +342,18 @@ DIVISION SYSTEM (divisions.ts)
 
   Division upgrades are allowed before tournament lock (June 11, 2026).
 
+LEADERBOARD DISPLAY NAMES
+  Two optional fields on each submission drive the rendered label:
+    - username — self-chosen, 3-20 chars, alphanumerics + dash/underscore
+                 (validated by src/lib/username.ts), case-insensitively
+                 unique across all submissions (DB unique index)
+    - ensName  — ENS reverse-resolved from the wallet address at
+                 submission time only, 2 s timeout, best-effort
+                 (src/lib/web3/ens.ts)
+  Render priority on /leaderboard: username → ensName → truncated 0x…
+  → masked email (e.g. "alice@..."). Both fields are persisted on the
+  submission row so leaderboard renders never trigger ENS lookups.
+
 SUBMISSION API (api/submit/route.ts)
   POST: Validates identity, checks for existing submission, queries
   used tokens, calculates division, saves submission + locks tokens.

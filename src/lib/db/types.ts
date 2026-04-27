@@ -18,6 +18,20 @@ export interface Submission {
   /** Token IDs locked to this submission (empty for email users) */
   lockedTokenIds: string[];
   submittedAt: number; // Unix timestamp ms
+  /**
+   * Self-chosen display name for the leaderboard. 3-20 chars,
+   * alphanumerics + dash + underscore. Optional; nullable when the
+   * user didn't pick one. Case-insensitively unique across all
+   * submissions (enforced at the DB level).
+   */
+  username?: string;
+  /**
+   * ENS reverse name resolved at submission time for wallet identities
+   * that didn't pick a username. Used as a fallback display label on
+   * the leaderboard before falling through to the truncated address.
+   * One-shot — does not refresh after submission.
+   */
+  ensName?: string;
   /** Full bracket data */
   groupStandings: GroupStanding[];
   qualifiedThirdPlace: ThirdPlaceTeam[];
@@ -46,6 +60,9 @@ export interface SubmissionScore {
   tiebreaker: number | null;
   champion?: Team;
   updatedAt: number;
+  /** Display-name passthrough so the leaderboard can render labels without a join. */
+  username?: string;
+  ensName?: string;
 }
 
 /**
@@ -64,6 +81,11 @@ export interface DataStore {
   getAllSubmissions(): Promise<Submission[]>;
   /** Delete a submission (for re-submission / division upgrade) */
   deleteSubmission(id: string): Promise<void>;
+  /**
+   * Whether a username is available (not already claimed by another submission).
+   * Comparison is case-insensitive — "Alice" and "alice" collide.
+   */
+  isUsernameAvailable(username: string): Promise<boolean>;
 
   // ── Token locking ──
   /** Lock token IDs to a submission. Each token carries its own contract address. */
